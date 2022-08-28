@@ -1,0 +1,8 @@
+type Tableau{
+  Id: ID!
+  EventId: ID!
+  Matches: [Match!]! @goField(forceResolver: true, name: "Matches")
+  MatchIds: [ID!]!
+  Name: String!
+  Status: TournamentStatus!
+}

@@ -1,0 +1,47 @@
+enum GlobalRoles {
+  ADMIN
+  USER
+}
+
+enum UserRoles {
+  FENCER
+  TRAINER
+  REFEREE
+  NONE
+}
+
+type User{
+  Id: ID!
+  Email: String!
+  BornIn: Int!
+  UserName: String!
+  FirstName: String
+  LastName: String
+  ParticipatingTournamentsIds: [ID!]!
+  ParticipatingTournaments: [Tournament!]! @goField(forceResolver: true, name: "ParticipatingTournaments")
+  LikedTournamentsIds: [ID!]!
+  LikedTournaments: [Tournament!]! @goField(forceResolver: true, name: "LikedTournaments")
+  FollowingUserIds: [ID!]!
+  Following: [User!]! @goField(forceResolver: true, name: "Following")
+  FollowersUserIds: [ID!]!
+  Followers: [User!]! @goField(forceResolver: true, name: "Followers")
+  Nationality: String!
+}
+
+input CreateUserInput{
+  Email: String!
+  BornIn: Int!
+  HashedPassword: String!
+  UserName: String!
+  FirstName: String!
+  LastName: String!
+  Nationality: String!
+}
+
+extend type Query {
+  getAllUsers: [User!]!
+}
+
+extend type Mutation {
+  CreateUser(input: CreateUserInput!): User!
+}

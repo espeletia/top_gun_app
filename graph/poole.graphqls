@@ -1,0 +1,11 @@
+type Poole{
+  Id: ID!
+  EventId: ID!
+  RefereeId: ID!
+  Referee: [User!]! @goField(forceResolver: true, name: "Referee")
+  AthleteIds: ID!
+  Athletes: [User!]! @goField(forceResolver: true, name: "Athletes")
+  MatchIds: [ID!]!
+  Matches: [Match!]! @goField(forceResolver: true, name: "Matches")
+  Status: TournamentStatus!
+}

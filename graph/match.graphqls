@@ -1,0 +1,27 @@
+enum MatchStatus{
+  PENDING
+  FINISHED
+}
+
+enum Side {
+  LEFT
+  RIGHT
+  NONE
+}
+
+type Match{
+  Id: ID!
+  LeftAthleteId: ID! 
+  LeftAthlete: User! @goField(forceResolver: true, name: "LeftAthlete")
+  RightAthleteId: ID!
+  RightAthlete: User! @goField(forceResolver: true, name: "RightAthlete")
+  RefereeId: ID!
+  Referee: User! @goField(forceResolver: true, name: "Referee")
+  RightScore: Int!
+  LeftScore: Int!
+  Status: MatchStatus!
+}
+
+input CreateMatchInput {
+  LeftAthlete: ID!
+}

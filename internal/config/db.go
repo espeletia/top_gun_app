@@ -14,7 +14,7 @@ func loadDbConfig() DBConfig {
 	v.BindEnv("ConnectionURI", "DATABASE_URL", "ODIN_DATABASE_URL")
 	err := v.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+		panic(fmt.Errorf("fatal error config file: %w ", err))
 	}
 	v.Unmarshal(dbConfig)
 	return *dbConfig

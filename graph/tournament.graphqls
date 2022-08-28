@@ -1,0 +1,55 @@
+
+enum TournamentStatus{
+  CREATED
+  STARTED
+  FINISHED
+}
+
+
+type Tournament {
+  Id: ID!
+  start: Int!
+  end: Int!
+  name: String!
+  Location: Location
+  City: String!
+  Country: String!
+  OwnerId: ID!
+  Owner: User! @goField(forceResolver: true, name: "Owner")
+  Events: [Event!]! @goField(forceResolver: true, name: "Events")
+  Status: TournamentStatus!
+  Description: String
+}
+
+type Location {
+  Lat: Float!
+  Long: Float!
+  Address: String!
+}
+
+input CreateTournamentInput{
+  start: Int!
+  end: Int!
+  name: String!
+  Location: LocationInput
+  City: String!
+  Country: String!
+  OwnerId: ID!
+  Events: [CreateEventInput!]!
+  Description: String
+}
+
+input LocationInput{
+  Lat: Float!
+  Long: Float!
+  Address: String!
+}
+
+extend type Query {
+  getAllTournaments: [Tournament!]!
+
+}
+
+extend type Mutation {
+  CreateTournament(input: CreateTournamentInput!): Tournament!
+}

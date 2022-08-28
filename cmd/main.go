@@ -47,12 +47,10 @@ func run() error {
 }
 
 func serve(mux *mux.Router, config *config.Config) error {
-	log.Println("Setting up logger")
-	logger := zap.NewExample().Sugar()
+	logger := zap.S()
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
-	log.Println("Setting cors")
 
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -60,7 +58,6 @@ func serve(mux *mux.Router, config *config.Config) error {
 		AllowCredentials: true,
 	})
 
-	log.Println("Setting middleware")
 	handler := corsMiddleware.Handler(mux)
 	api := http.Server{
 		Addr:         "0.0.0.0:" + config.ServerConfig.Port,
@@ -69,11 +66,8 @@ func serve(mux *mux.Router, config *config.Config) error {
 		Handler:      handler,
 	}
 	serverErrors := make(chan error, 1)
-
-	log.Println("Setting up graphql server")
-
+	logger.Info("Starting server...")
 	go func() {
-		log.Println("Starting server")
 		logger.Infof("Connect to http://localhost:%s/ for GraphQL playground", config.ServerConfig.Port)
 		if config.ServerConfig.TLSEnable {
 			serverErrors <- api.ListenAndServeTLS(config.ServerConfig.TLSCertPath, config.ServerConfig.TLSKeyPath)
@@ -81,7 +75,6 @@ func serve(mux *mux.Router, config *config.Config) error {
 			serverErrors <- api.ListenAndServe()
 		}
 	}()
-	log.Println("Calling serve")
 
 	select {
 	case err := <-serverErrors:

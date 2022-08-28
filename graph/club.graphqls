@@ -1,0 +1,10 @@
+type Club {
+  Id: ID!
+  Name: String!
+  Location: Location
+  OwnerId: ID!
+  Owner: User! @goField(forceResolver: true, name: "Owner")
+  MembersIds: [ID!]!
+  Members: [User!]! @goField(forceResolver: true, name: "Members")
+  Country: String!
+}

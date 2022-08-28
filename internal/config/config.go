@@ -5,14 +5,20 @@ import (
 )
 
 type Config struct {
-	DBConfig     DBConfig
-	ServerConfig ServerConfig
+	ServerConfig  ServerConfig
+	LoggingConfig LoggingConfig
+	ServiceConfig ServiceConfig
+	DBConfig      DBConfig
+	MinioConfig   MinioConfig
 }
 
 func LoadConfig() *Config {
 	config := &Config{
-		DBConfig:     loadDbConfig(),
-		ServerConfig: loadServerConfig(),
+		ServerConfig:  loadServerConfig(),
+		LoggingConfig: loadLoggingConfig(),
+		ServiceConfig: loadServiceConfig(),
+		DBConfig:      loadDbConfig(),
+		MinioConfig:   loadMinioConfig(),
 	}
 
 	return config
