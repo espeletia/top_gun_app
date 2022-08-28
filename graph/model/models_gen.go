@@ -8,9 +8,17 @@ import (
 	"strconv"
 )
 
+type Athlete struct {
+	UserID         string `json:"userId"`
+	User           *User  `json:"User"`
+	PooleSeeding   int64  `json:"PooleSeeding"`
+	TableauSeeding *int64 `json:"TableauSeeding"`
+	FinalRanking   *int64 `json:"FinalRanking"`
+}
+
 type AthleteSeedingInput struct {
-	AthleteID string `json:"AthleteId"`
-	Seed      int64  `json:"Seed"`
+	UserID string `json:"UserId"`
+	Seed   int64  `json:"Seed"`
 }
 
 type Club struct {
@@ -33,6 +41,10 @@ type CreateEventInput struct {
 	Start        int64                  `json:"start"`
 	End          int64                  `json:"end"`
 	Details      *DetailsInput          `json:"Details"`
+}
+
+type CreateMatchInput struct {
+	LeftAthlete string `json:"LeftAthlete"`
 }
 
 type CreateTournamentInput struct {
@@ -58,10 +70,10 @@ type CreateUserInput struct {
 }
 
 type DetailsInput struct {
-	Weapon   Weapon      `json:"Weapon"`
-	Type     EventType   `json:"Type"`
-	Gender   Gender      `json:"Gender"`
-	Category AgeCategory `json:"Category"`
+	Weapon   EventWeapon      `json:"Weapon"`
+	Type     EventType        `json:"Type"`
+	Gender   EventGenderMix   `json:"Gender"`
+	Category EventAgeCategory `json:"Category"`
 }
 
 type Event struct {
@@ -73,18 +85,20 @@ type Event struct {
 	RefereeIds   []string         `json:"RefereeIds"`
 	Referees     []*User          `json:"Referees"`
 	AthleteIds   []string         `json:"AthleteIds"`
-	Athletes     []*User          `json:"Athletes"`
+	Athletes     []*Athlete       `json:"Athletes"`
 	Start        int64            `json:"start"`
+	Pooles       []*Poole         `json:"Pooles"`
+	Tableaus     []*Tableau       `json:"Tableaus"`
 	End          int64            `json:"end"`
 	Status       TournamentStatus `json:"Status"`
 	Details      *EventDetails    `json:"Details"`
 }
 
 type EventDetails struct {
-	Weapon   Weapon      `json:"Weapon"`
-	Type     EventType   `json:"Type"`
-	Gender   Gender      `json:"Gender"`
-	Category AgeCategory `json:"Category"`
+	Weapon   EventWeapon      `json:"Weapon"`
+	Type     EventType        `json:"Type"`
+	Gender   EventGenderMix   `json:"Gender"`
+	Category EventAgeCategory `json:"Category"`
 }
 
 type Location struct {
@@ -113,27 +127,28 @@ type Match struct {
 }
 
 type Poole struct {
-	ID           string           `json:"Id"`
-	TournamentID string           `json:"TournamentId"`
-	RefereeID    string           `json:"RefereeId"`
-	Referee      []*User          `json:"Referee"`
-	AthleteIds   string           `json:"AthleteIds"`
-	Athletes     []*User          `json:"Athletes"`
-	MatchIds     []string         `json:"MatchIds"`
-	Matches      []*Match         `json:"Matches"`
-	Status       TournamentStatus `json:"Status"`
+	ID         string           `json:"Id"`
+	EventID    string           `json:"EventId"`
+	RefereeID  string           `json:"RefereeId"`
+	Referee    []*User          `json:"Referee"`
+	AthleteIds string           `json:"AthleteIds"`
+	Athletes   []*User          `json:"Athletes"`
+	MatchIds   []string         `json:"MatchIds"`
+	Matches    []*Match         `json:"Matches"`
+	Status     TournamentStatus `json:"Status"`
 }
 
 type Tableau struct {
-	ID           string           `json:"Id"`
-	TournamentID string           `json:"TournamentId"`
-	Matches      []*Match         `json:"Matches"`
-	MatchIds     []string         `json:"MatchIds"`
-	Name         string           `json:"Name"`
-	Status       TournamentStatus `json:"Status"`
+	ID       string           `json:"Id"`
+	EventID  string           `json:"EventId"`
+	Matches  []*Match         `json:"Matches"`
+	MatchIds []string         `json:"MatchIds"`
+	Name     string           `json:"Name"`
+	Status   TournamentStatus `json:"Status"`
 }
 
 type Tournament struct {
+	ID          string           `json:"Id"`
 	Start       int64            `json:"start"`
 	End         int64            `json:"end"`
 	Name        string           `json:"name"`
@@ -143,7 +158,6 @@ type Tournament struct {
 	OwnerID     string           `json:"OwnerId"`
 	Owner       *User            `json:"Owner"`
 	Events      []*Event         `json:"Events"`
-	EventIds    []string         `json:"EventIds"`
 	Status      TournamentStatus `json:"Status"`
 	Description *string          `json:"Description"`
 }
@@ -166,76 +180,203 @@ type User struct {
 	Nationality                 string        `json:"Nationality"`
 }
 
-type AgeCategory string
+type AthleteStatus string
 
 const (
-	AgeCategoryU9            AgeCategory = "U9"
-	AgeCategoryU10           AgeCategory = "U10"
-	AgeCategoryU11           AgeCategory = "U11"
-	AgeCategoryU12           AgeCategory = "U12"
-	AgeCategoryU13           AgeCategory = "U13"
-	AgeCategoryU14           AgeCategory = "U14"
-	AgeCategoryU15           AgeCategory = "U15"
-	AgeCategoryCadet16       AgeCategory = "CADET16"
-	AgeCategoryCadet17       AgeCategory = "CADET17"
-	AgeCategoryU18           AgeCategory = "U18"
-	AgeCategoryJunior        AgeCategory = "JUNIOR"
-	AgeCategoryU23           AgeCategory = "U23"
-	AgeCategorySenior        AgeCategory = "SENIOR"
-	AgeCategorySenior13plus  AgeCategory = "SENIOR13PLUS"
-	AgeCategoryVeteran40plus AgeCategory = "VETERAN40PLUS"
-	AgeCategoryVeteran50     AgeCategory = "VETERAN50"
-	AgeCategoryVeteran60     AgeCategory = "VETERAN60"
-	AgeCategoryVeteran70     AgeCategory = "VETERAN70"
+	AthleteStatusFinished  AthleteStatus = "FINISHED"
+	AthleteStatusCompeting AthleteStatus = "COMPETING"
 )
 
-var AllAgeCategory = []AgeCategory{
-	AgeCategoryU9,
-	AgeCategoryU10,
-	AgeCategoryU11,
-	AgeCategoryU12,
-	AgeCategoryU13,
-	AgeCategoryU14,
-	AgeCategoryU15,
-	AgeCategoryCadet16,
-	AgeCategoryCadet17,
-	AgeCategoryU18,
-	AgeCategoryJunior,
-	AgeCategoryU23,
-	AgeCategorySenior,
-	AgeCategorySenior13plus,
-	AgeCategoryVeteran40plus,
-	AgeCategoryVeteran50,
-	AgeCategoryVeteran60,
-	AgeCategoryVeteran70,
+var AllAthleteStatus = []AthleteStatus{
+	AthleteStatusFinished,
+	AthleteStatusCompeting,
 }
 
-func (e AgeCategory) IsValid() bool {
+func (e AthleteStatus) IsValid() bool {
 	switch e {
-	case AgeCategoryU9, AgeCategoryU10, AgeCategoryU11, AgeCategoryU12, AgeCategoryU13, AgeCategoryU14, AgeCategoryU15, AgeCategoryCadet16, AgeCategoryCadet17, AgeCategoryU18, AgeCategoryJunior, AgeCategoryU23, AgeCategorySenior, AgeCategorySenior13plus, AgeCategoryVeteran40plus, AgeCategoryVeteran50, AgeCategoryVeteran60, AgeCategoryVeteran70:
+	case AthleteStatusFinished, AthleteStatusCompeting:
 		return true
 	}
 	return false
 }
 
-func (e AgeCategory) String() string {
+func (e AthleteStatus) String() string {
 	return string(e)
 }
 
-func (e *AgeCategory) UnmarshalGQL(v interface{}) error {
+func (e *AthleteStatus) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = AgeCategory(str)
+	*e = AthleteStatus(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AgeCategory", str)
+		return fmt.Errorf("%s is not a valid AthleteStatus", str)
 	}
 	return nil
 }
 
-func (e AgeCategory) MarshalGQL(w io.Writer) {
+func (e AthleteStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EventAgeCategory string
+
+const (
+	EventAgeCategoryU9            EventAgeCategory = "U9"
+	EventAgeCategoryU10           EventAgeCategory = "U10"
+	EventAgeCategoryU11           EventAgeCategory = "U11"
+	EventAgeCategoryU12           EventAgeCategory = "U12"
+	EventAgeCategoryU13           EventAgeCategory = "U13"
+	EventAgeCategoryU14           EventAgeCategory = "U14"
+	EventAgeCategoryU15           EventAgeCategory = "U15"
+	EventAgeCategoryCadet16       EventAgeCategory = "CADET16"
+	EventAgeCategoryCadet17       EventAgeCategory = "CADET17"
+	EventAgeCategoryU18           EventAgeCategory = "U18"
+	EventAgeCategoryJunior        EventAgeCategory = "JUNIOR"
+	EventAgeCategoryU23           EventAgeCategory = "U23"
+	EventAgeCategorySenior        EventAgeCategory = "SENIOR"
+	EventAgeCategorySenior13plus  EventAgeCategory = "SENIOR13PLUS"
+	EventAgeCategoryVeteran40plus EventAgeCategory = "VETERAN40PLUS"
+	EventAgeCategoryVeteran50     EventAgeCategory = "VETERAN50"
+	EventAgeCategoryVeteran60     EventAgeCategory = "VETERAN60"
+	EventAgeCategoryVeteran70     EventAgeCategory = "VETERAN70"
+)
+
+var AllEventAgeCategory = []EventAgeCategory{
+	EventAgeCategoryU9,
+	EventAgeCategoryU10,
+	EventAgeCategoryU11,
+	EventAgeCategoryU12,
+	EventAgeCategoryU13,
+	EventAgeCategoryU14,
+	EventAgeCategoryU15,
+	EventAgeCategoryCadet16,
+	EventAgeCategoryCadet17,
+	EventAgeCategoryU18,
+	EventAgeCategoryJunior,
+	EventAgeCategoryU23,
+	EventAgeCategorySenior,
+	EventAgeCategorySenior13plus,
+	EventAgeCategoryVeteran40plus,
+	EventAgeCategoryVeteran50,
+	EventAgeCategoryVeteran60,
+	EventAgeCategoryVeteran70,
+}
+
+func (e EventAgeCategory) IsValid() bool {
+	switch e {
+	case EventAgeCategoryU9, EventAgeCategoryU10, EventAgeCategoryU11, EventAgeCategoryU12, EventAgeCategoryU13, EventAgeCategoryU14, EventAgeCategoryU15, EventAgeCategoryCadet16, EventAgeCategoryCadet17, EventAgeCategoryU18, EventAgeCategoryJunior, EventAgeCategoryU23, EventAgeCategorySenior, EventAgeCategorySenior13plus, EventAgeCategoryVeteran40plus, EventAgeCategoryVeteran50, EventAgeCategoryVeteran60, EventAgeCategoryVeteran70:
+		return true
+	}
+	return false
+}
+
+func (e EventAgeCategory) String() string {
+	return string(e)
+}
+
+func (e *EventAgeCategory) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EventAgeCategory(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EventAgeCategory", str)
+	}
+	return nil
+}
+
+func (e EventAgeCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EventGenderMix string
+
+const (
+	EventGenderMixMixed EventGenderMix = "MIXED"
+	EventGenderMixMen   EventGenderMix = "MEN"
+	EventGenderMixWomen EventGenderMix = "WOMEN"
+)
+
+var AllEventGenderMix = []EventGenderMix{
+	EventGenderMixMixed,
+	EventGenderMixMen,
+	EventGenderMixWomen,
+}
+
+func (e EventGenderMix) IsValid() bool {
+	switch e {
+	case EventGenderMixMixed, EventGenderMixMen, EventGenderMixWomen:
+		return true
+	}
+	return false
+}
+
+func (e EventGenderMix) String() string {
+	return string(e)
+}
+
+func (e *EventGenderMix) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EventGenderMix(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EventGenderMix", str)
+	}
+	return nil
+}
+
+func (e EventGenderMix) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EventRoles string
+
+const (
+	EventRolesReferee  EventRoles = "REFEREE"
+	EventRolesAdmin    EventRoles = "ADMIN"
+	EventRolesAthelete EventRoles = "ATHELETE"
+)
+
+var AllEventRoles = []EventRoles{
+	EventRolesReferee,
+	EventRolesAdmin,
+	EventRolesAthelete,
+}
+
+func (e EventRoles) IsValid() bool {
+	switch e {
+	case EventRolesReferee, EventRolesAdmin, EventRolesAthelete:
+		return true
+	}
+	return false
+}
+
+func (e EventRoles) String() string {
+	return string(e)
+}
+
+func (e *EventRoles) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EventRoles(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EventRoles", str)
+	}
+	return nil
+}
+
+func (e EventRoles) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -280,46 +421,46 @@ func (e EventType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type Gender string
+type EventWeapon string
 
 const (
-	GenderMixed Gender = "MIXED"
-	GenderMen   Gender = "MEN"
-	GenderWomen Gender = "WOMEN"
+	EventWeaponEpee  EventWeapon = "EPEE"
+	EventWeaponFoil  EventWeapon = "FOIL"
+	EventWeaponSabre EventWeapon = "SABRE"
 )
 
-var AllGender = []Gender{
-	GenderMixed,
-	GenderMen,
-	GenderWomen,
+var AllEventWeapon = []EventWeapon{
+	EventWeaponEpee,
+	EventWeaponFoil,
+	EventWeaponSabre,
 }
 
-func (e Gender) IsValid() bool {
+func (e EventWeapon) IsValid() bool {
 	switch e {
-	case GenderMixed, GenderMen, GenderWomen:
+	case EventWeaponEpee, EventWeaponFoil, EventWeaponSabre:
 		return true
 	}
 	return false
 }
 
-func (e Gender) String() string {
+func (e EventWeapon) String() string {
 	return string(e)
 }
 
-func (e *Gender) UnmarshalGQL(v interface{}) error {
+func (e *EventWeapon) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = Gender(str)
+	*e = EventWeapon(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Gender", str)
+		return fmt.Errorf("%s is not a valid EventWeapon", str)
 	}
 	return nil
 }
 
-func (e Gender) MarshalGQL(w io.Writer) {
+func (e EventWeapon) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -448,51 +589,6 @@ func (e Side) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type TournamentRoles string
-
-const (
-	TournamentRolesOwner    TournamentRoles = "OWNER"
-	TournamentRolesReferee  TournamentRoles = "REFEREE"
-	TournamentRolesAdmin    TournamentRoles = "ADMIN"
-	TournamentRolesAthelete TournamentRoles = "ATHELETE"
-)
-
-var AllTournamentRoles = []TournamentRoles{
-	TournamentRolesOwner,
-	TournamentRolesReferee,
-	TournamentRolesAdmin,
-	TournamentRolesAthelete,
-}
-
-func (e TournamentRoles) IsValid() bool {
-	switch e {
-	case TournamentRolesOwner, TournamentRolesReferee, TournamentRolesAdmin, TournamentRolesAthelete:
-		return true
-	}
-	return false
-}
-
-func (e TournamentRoles) String() string {
-	return string(e)
-}
-
-func (e *TournamentRoles) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TournamentRoles(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TournamentRoles", str)
-	}
-	return nil
-}
-
-func (e TournamentRoles) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type TournamentStatus string
 
 const (
@@ -578,48 +674,5 @@ func (e *UserRoles) UnmarshalGQL(v interface{}) error {
 }
 
 func (e UserRoles) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type Weapon string
-
-const (
-	WeaponEpee  Weapon = "EPEE"
-	WeaponFoil  Weapon = "FOIL"
-	WeaponSabre Weapon = "SABRE"
-)
-
-var AllWeapon = []Weapon{
-	WeaponEpee,
-	WeaponFoil,
-	WeaponSabre,
-}
-
-func (e Weapon) IsValid() bool {
-	switch e {
-	case WeaponEpee, WeaponFoil, WeaponSabre:
-		return true
-	}
-	return false
-}
-
-func (e Weapon) String() string {
-	return string(e)
-}
-
-func (e *Weapon) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Weapon(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Weapon", str)
-	}
-	return nil
-}
-
-func (e Weapon) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

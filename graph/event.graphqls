@@ -98,10 +98,10 @@ input AthleteSeedingInput{
 }
 
 input DetailsInput{
-  Weapon: Weapon!
+  Weapon: EventWeapon!
   Type: EventType!
-  Gender: Gender!
-  Category: AgeCategory!
+  Gender: EventGenderMix!
+  Category: EventAgeCategory!
 }
 
 extend type Query {

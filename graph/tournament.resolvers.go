@@ -10,6 +10,14 @@ import (
 	"fmt"
 )
 
+func (r *mutationResolver) CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournament, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }

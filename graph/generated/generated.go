@@ -36,6 +36,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Athlete() AthleteResolver
 	Club() ClubResolver
 	Event() EventResolver
 	Match() MatchResolver
@@ -51,6 +52,14 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Athlete struct {
+		FinalRanking   func(childComplexity int) int
+		PooleSeeding   func(childComplexity int) int
+		TableauSeeding func(childComplexity int) int
+		User           func(childComplexity int) int
+		UserID         func(childComplexity int) int
+	}
+
 	Club struct {
 		Country    func(childComplexity int) int
 		ID         func(childComplexity int) int
@@ -70,10 +79,12 @@ type ComplexityRoot struct {
 		End          func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
+		Pooles       func(childComplexity int) int
 		RefereeIds   func(childComplexity int) int
 		Referees     func(childComplexity int) int
 		Start        func(childComplexity int) int
 		Status       func(childComplexity int) int
+		Tableaus     func(childComplexity int) int
 		Tournament   func(childComplexity int) int
 		TournamentID func(childComplexity int) int
 	}
@@ -105,34 +116,36 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateEvent      func(childComplexity int, tournamentID string, input model.CreateEventInput) int
 		CreateTournament func(childComplexity int, input model.CreateTournamentInput) int
 		CreateUser       func(childComplexity int, input model.CreateUserInput) int
 	}
 
 	Poole struct {
-		AthleteIds   func(childComplexity int) int
-		Athletes     func(childComplexity int) int
-		ID           func(childComplexity int) int
-		MatchIds     func(childComplexity int) int
-		Matches      func(childComplexity int) int
-		Referee      func(childComplexity int) int
-		RefereeID    func(childComplexity int) int
-		Status       func(childComplexity int) int
-		TournamentID func(childComplexity int) int
+		AthleteIds func(childComplexity int) int
+		Athletes   func(childComplexity int) int
+		EventID    func(childComplexity int) int
+		ID         func(childComplexity int) int
+		MatchIds   func(childComplexity int) int
+		Matches    func(childComplexity int) int
+		Referee    func(childComplexity int) int
+		RefereeID  func(childComplexity int) int
+		Status     func(childComplexity int) int
 	}
 
 	Query struct {
 		GetAllTournaments func(childComplexity int) int
 		GetAllUsers       func(childComplexity int) int
+		GetEvent          func(childComplexity int, eventID string) int
 	}
 
 	Tableau struct {
-		ID           func(childComplexity int) int
-		MatchIds     func(childComplexity int) int
-		Matches      func(childComplexity int) int
-		Name         func(childComplexity int) int
-		Status       func(childComplexity int) int
-		TournamentID func(childComplexity int) int
+		EventID  func(childComplexity int) int
+		ID       func(childComplexity int) int
+		MatchIds func(childComplexity int) int
+		Matches  func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Status   func(childComplexity int) int
 	}
 
 	Tournament struct {
@@ -140,8 +153,8 @@ type ComplexityRoot struct {
 		Country     func(childComplexity int) int
 		Description func(childComplexity int) int
 		End         func(childComplexity int) int
-		EventIds    func(childComplexity int) int
 		Events      func(childComplexity int) int
+		ID          func(childComplexity int) int
 		Location    func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Owner       func(childComplexity int) int
@@ -169,6 +182,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AthleteResolver interface {
+	User(ctx context.Context, obj *model.Athlete) (*model.User, error)
+}
 type ClubResolver interface {
 	Owner(ctx context.Context, obj *model.Club) (*model.User, error)
 
@@ -179,7 +195,10 @@ type EventResolver interface {
 
 	Referees(ctx context.Context, obj *model.Event) ([]*model.User, error)
 
-	Athletes(ctx context.Context, obj *model.Event) ([]*model.User, error)
+	Athletes(ctx context.Context, obj *model.Event) ([]*model.Athlete, error)
+
+	Pooles(ctx context.Context, obj *model.Event) ([]*model.Poole, error)
+	Tableaus(ctx context.Context, obj *model.Event) ([]*model.Tableau, error)
 }
 type MatchResolver interface {
 	LeftAthlete(ctx context.Context, obj *model.Match) (*model.User, error)
@@ -189,6 +208,7 @@ type MatchResolver interface {
 	Referee(ctx context.Context, obj *model.Match) (*model.User, error)
 }
 type MutationResolver interface {
+	CreateEvent(ctx context.Context, tournamentID string, input model.CreateEventInput) (*model.Event, error)
 	CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error)
 	CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error)
 }
@@ -200,6 +220,7 @@ type PooleResolver interface {
 	Matches(ctx context.Context, obj *model.Poole) ([]*model.Match, error)
 }
 type QueryResolver interface {
+	GetEvent(ctx context.Context, eventID string) (*model.Event, error)
 	GetAllTournaments(ctx context.Context) ([]*model.Tournament, error)
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
 }
@@ -234,6 +255,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Athlete.FinalRanking":
+		if e.complexity.Athlete.FinalRanking == nil {
+			break
+		}
+
+		return e.complexity.Athlete.FinalRanking(childComplexity), true
+
+	case "Athlete.PooleSeeding":
+		if e.complexity.Athlete.PooleSeeding == nil {
+			break
+		}
+
+		return e.complexity.Athlete.PooleSeeding(childComplexity), true
+
+	case "Athlete.TableauSeeding":
+		if e.complexity.Athlete.TableauSeeding == nil {
+			break
+		}
+
+		return e.complexity.Athlete.TableauSeeding(childComplexity), true
+
+	case "Athlete.User":
+		if e.complexity.Athlete.User == nil {
+			break
+		}
+
+		return e.complexity.Athlete.User(childComplexity), true
+
+	case "Athlete.userId":
+		if e.complexity.Athlete.UserID == nil {
+			break
+		}
+
+		return e.complexity.Athlete.UserID(childComplexity), true
 
 	case "Club.Country":
 		if e.complexity.Club.Country == nil {
@@ -340,6 +396,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Event.Name(childComplexity), true
 
+	case "Event.Pooles":
+		if e.complexity.Event.Pooles == nil {
+			break
+		}
+
+		return e.complexity.Event.Pooles(childComplexity), true
+
 	case "Event.RefereeIds":
 		if e.complexity.Event.RefereeIds == nil {
 			break
@@ -367,6 +430,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Status(childComplexity), true
+
+	case "Event.Tableaus":
+		if e.complexity.Event.Tableaus == nil {
+			break
+		}
+
+		return e.complexity.Event.Tableaus(childComplexity), true
 
 	case "Event.Tournament":
 		if e.complexity.Event.Tournament == nil {
@@ -501,6 +571,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Match.Status(childComplexity), true
 
+	case "Mutation.CreateEvent":
+		if e.complexity.Mutation.CreateEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateEvent(childComplexity, args["TournamentId"].(string), args["input"].(model.CreateEventInput)), true
+
 	case "Mutation.CreateTournament":
 		if e.complexity.Mutation.CreateTournament == nil {
 			break
@@ -538,6 +620,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Poole.Athletes(childComplexity), true
+
+	case "Poole.EventId":
+		if e.complexity.Poole.EventID == nil {
+			break
+		}
+
+		return e.complexity.Poole.EventID(childComplexity), true
 
 	case "Poole.Id":
 		if e.complexity.Poole.ID == nil {
@@ -581,13 +670,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Poole.Status(childComplexity), true
 
-	case "Poole.TournamentId":
-		if e.complexity.Poole.TournamentID == nil {
-			break
-		}
-
-		return e.complexity.Poole.TournamentID(childComplexity), true
-
 	case "Query.getAllTournaments":
 		if e.complexity.Query.GetAllTournaments == nil {
 			break
@@ -601,6 +683,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllUsers(childComplexity), true
+
+	case "Query.GetEvent":
+		if e.complexity.Query.GetEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetEvent(childComplexity, args["EventId"].(string)), true
+
+	case "Tableau.EventId":
+		if e.complexity.Tableau.EventID == nil {
+			break
+		}
+
+		return e.complexity.Tableau.EventID(childComplexity), true
 
 	case "Tableau.Id":
 		if e.complexity.Tableau.ID == nil {
@@ -637,13 +738,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tableau.Status(childComplexity), true
 
-	case "Tableau.TournamentId":
-		if e.complexity.Tableau.TournamentID == nil {
-			break
-		}
-
-		return e.complexity.Tableau.TournamentID(childComplexity), true
-
 	case "Tournament.City":
 		if e.complexity.Tournament.City == nil {
 			break
@@ -672,19 +766,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tournament.End(childComplexity), true
 
-	case "Tournament.EventIds":
-		if e.complexity.Tournament.EventIds == nil {
-			break
-		}
-
-		return e.complexity.Tournament.EventIds(childComplexity), true
-
 	case "Tournament.Events":
 		if e.complexity.Tournament.Events == nil {
 			break
 		}
 
 		return e.complexity.Tournament.Events(childComplexity), true
+
+	case "Tournament.Id":
+		if e.complexity.Tournament.ID == nil {
+			break
+		}
+
+		return e.complexity.Tournament.ID(childComplexity), true
 
 	case "Tournament.Location":
 		if e.complexity.Tournament.Location == nil {
@@ -843,6 +937,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAthleteSeedingInput,
 		ec.unmarshalInputCreateEventInput,
+		ec.unmarshalInputCreateMatchInput,
 		ec.unmarshalInputCreateTournamentInput,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputDetailsInput,
@@ -907,65 +1002,41 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `directive @goField(
-	forceResolver: Boolean
-	name: String
-) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
-
-enum GlobalRoles {
-  ADMIN
-  USER
-}
-
-enum TournamentStatus{
-  CREATED
-  STARTED
-  FINISHED
-}
-
-enum UserRoles {
-  FENCER
-  TRAINER
-  REFEREE
-  NONE
-}
-
-enum TournamentRoles{
-  OWNER
+	{Name: "../club.graphqls", Input: `type Club {
+  Id: ID!
+  Name: String!
+  Location: Location
+  OwnerId: ID!
+  Owner: User! @goField(forceResolver: true, name: "Owner")
+  MembersIds: [ID!]!
+  Members: [User!]! @goField(forceResolver: true, name: "Members")
+  Country: String!
+}`, BuiltIn: false},
+	{Name: "../event.graphqls", Input: `enum EventRoles{
   REFEREE
   ADMIN
   ATHELETE
 }
 
-enum Weapon {
+enum EventWeapon {
   EPEE
   FOIL
   SABRE
 }
 
-enum Gender{
+enum EventGenderMix{
   MIXED
   MEN
   WOMEN
 }
 
-enum MatchStatus{
-  PENDING
-  FINISHED
-}
 
 enum EventType {
   INDIVIDUAL
   TEAM
 }
 
-enum Side {
-  LEFT
-  RIGHT
-  NONE
-}
-
-enum AgeCategory{
+enum EventAgeCategory{
   U9
   U10
   U11
@@ -986,25 +1057,10 @@ enum AgeCategory{
   VETERAN70
 }
 
-type User{
-  Id: ID!
-  Email: String!
-  BornIn: Int!
-  UserName: String!
-  FirstName: String
-  LastName: String
-  ParticipatingTournamentsIds: [ID!]!
-  ParticipatingTournaments: [Tournament!]! @goField(forceResolver: true, name: "ParticipatingTournaments")
-  LikedTournamentsIds: [ID!]!
-  LikedTournaments: [Tournament!]! @goField(forceResolver: true, name: "LikedTournaments")
-  FollowingUserIds: [ID!]!
-  Following: [User!]! @goField(forceResolver: true, name: "Following")
-  FollowersUserIds: [ID!]!
-  Followers: [User!]! @goField(forceResolver: true, name: "Followers")
-  Nationality: String!
+enum AthleteStatus {
+  FINISHED
+  COMPETING
 }
-
-
 
 type Event{
   Id: ID!
@@ -1015,18 +1071,69 @@ type Event{
   RefereeIds: [ID!]! 
   Referees: [User!]! @goField(forceResolver: true, name: "Referees")
   AthleteIds: [ID!]!
-  Athletes: [User!]! @goField(forceResolver: true, name: "Athletes")
+  Athletes: [Athlete!]! @goField(forceResolver: true, name: "Athletes")
   start: Int!
+  Pooles: [Poole!]! @goField(forceResolver: true, name: "Pooles")
+  Tableaus: [Tableau!]! @goField(forceResolver: true, name: "Tableaus")
   end: Int!
   Status: TournamentStatus!
   Details: EventDetails!
 }
 
+type Athlete {
+  userId: ID!
+  User: User! @goField(forceResolver: true, name: "user")
+  PooleSeeding: Int!
+  TableauSeeding: Int
+  FinalRanking: Int
+}
+
 type EventDetails {
-  Weapon: Weapon!
+  Weapon: EventWeapon!
   Type: EventType!
-  Gender: Gender!
-  Category: AgeCategory!
+  Gender: EventGenderMix!
+  Category: EventAgeCategory!
+}
+
+input CreateEventInput{
+  Name: String!
+  Description: String
+  TournamentId: ID!
+  RefereeIds: [ID!]! 
+  AthleteIds: [AthleteSeedingInput!]!
+  start: Int!
+  end: Int!
+  Details: DetailsInput!
+}
+
+input AthleteSeedingInput{
+  UserId: ID!
+  Seed: Int!
+}
+
+input DetailsInput{
+  Weapon: EventWeapon!
+  Type: EventType!
+  Gender: EventGenderMix!
+  Category: EventAgeCategory!
+}
+
+extend type Query {
+  GetEvent(EventId: ID!): Event!
+}
+
+extend type Mutation {
+  CreateEvent(TournamentId: ID!, input: CreateEventInput!): Event!
+}`, BuiltIn: false},
+	{Name: "../match.graphqls", Input: `enum MatchStatus{
+  PENDING
+  FINISHED
+}
+
+enum Side {
+  LEFT
+  RIGHT
+  NONE
 }
 
 type Match{
@@ -1042,9 +1149,12 @@ type Match{
   Status: MatchStatus!
 }
 
-type Poole{
+input CreateMatchInput {
+  LeftAthlete: ID!
+}`, BuiltIn: false},
+	{Name: "../poole.graphqls", Input: `type Poole{
   Id: ID!
-  TournamentId: ID!
+  EventId: ID!
   RefereeId: ID!
   Referee: [User!]! @goField(forceResolver: true, name: "Referee")
   AthleteIds: ID!
@@ -1052,32 +1162,50 @@ type Poole{
   MatchIds: [ID!]!
   Matches: [Match!]! @goField(forceResolver: true, name: "Matches")
   Status: TournamentStatus!
+}`, BuiltIn: false},
+	{Name: "../schema.graphqls", Input: `directive @goField(
+	forceResolver: Boolean
+	name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+type Query 
+
+type Mutation `, BuiltIn: false},
+	{Name: "../tableau.graphqls", Input: `type Tableau{
+  Id: ID!
+  EventId: ID!
+  Matches: [Match!]! @goField(forceResolver: true, name: "Matches")
+  MatchIds: [ID!]!
+  Name: String!
+  Status: TournamentStatus!
+}`, BuiltIn: false},
+	{Name: "../tournament.graphqls", Input: `
+enum TournamentStatus{
+  CREATED
+  STARTED
+  FINISHED
+}
+
+
+type Tournament {
+  Id: ID!
+  start: Int!
+  end: Int!
+  name: String!
+  Location: Location
+  City: String!
+  Country: String!
+  OwnerId: ID!
+  Owner: User! @goField(forceResolver: true, name: "Owner")
+  Events: [Event!]! @goField(forceResolver: true, name: "Events")
+  Status: TournamentStatus!
+  Description: String
 }
 
 type Location {
   Lat: Float!
   Long: Float!
   Address: String!
-}
-
-type Tableau{
-  Id: ID!
-  TournamentId: ID!
-  Matches: [Match!]! @goField(forceResolver: true, name: "Matches")
-  MatchIds: [ID!]!
-  Name: String!
-  Status: TournamentStatus!
-}
-
-type Club {
-  Id: ID!
-  Name: String!
-  Location: Location
-  OwnerId: ID!
-  Owner: User! @goField(forceResolver: true, name: "Owner")
-  MembersIds: [ID!]!
-  Members: [User!]! @goField(forceResolver: true, name: "Members")
-  Country: String!
 }
 
 input CreateTournamentInput{
@@ -1098,27 +1226,42 @@ input LocationInput{
   Address: String!
 }
 
-input CreateEventInput{
-  Name: String!
-  Description: String
-  TournamentId: ID!
-  RefereeIds: [ID!]! 
-  AthleteIds: [AthleteSeedingInput!]!
-  start: Int!
-  end: Int!
-  Details: DetailsInput!
+extend type Query {
+  getAllTournaments: [Tournament!]!
+
 }
 
-input AthleteSeedingInput{
-  AthleteId: ID!
-  Seed: Int!
+extend type Mutation {
+  CreateTournament(input: CreateTournamentInput!): Tournament!
+}`, BuiltIn: false},
+	{Name: "../user.graphqls", Input: `enum GlobalRoles {
+  ADMIN
+  USER
 }
 
-input DetailsInput{
-  Weapon: Weapon!
-  Type: EventType!
-  Gender: Gender!
-  Category: AgeCategory!
+enum UserRoles {
+  FENCER
+  TRAINER
+  REFEREE
+  NONE
+}
+
+type User{
+  Id: ID!
+  Email: String!
+  BornIn: Int!
+  UserName: String!
+  FirstName: String
+  LastName: String
+  ParticipatingTournamentsIds: [ID!]!
+  ParticipatingTournaments: [Tournament!]! @goField(forceResolver: true, name: "ParticipatingTournaments")
+  LikedTournamentsIds: [ID!]!
+  LikedTournaments: [Tournament!]! @goField(forceResolver: true, name: "LikedTournaments")
+  FollowingUserIds: [ID!]!
+  Following: [User!]! @goField(forceResolver: true, name: "Following")
+  FollowersUserIds: [ID!]!
+  Followers: [User!]! @goField(forceResolver: true, name: "Followers")
+  Nationality: String!
 }
 
 input CreateUserInput{
@@ -1131,34 +1274,12 @@ input CreateUserInput{
   Nationality: String!
 }
 
-type Query {
-  # Match queries
-  # getAllMatches(TournamentId: ID!): [Match!]!
-
-  # Tournament queries
-  getAllTournaments: [Tournament!]!
-
-  # User queries
+extend type Query {
   getAllUsers: [User!]!
 }
 
-type Mutation {
-  CreateTournament(input: CreateTournamentInput!): Tournament!
+extend type Mutation {
   CreateUser(input: CreateUserInput!): User!
-}`, BuiltIn: false},
-	{Name: "../tournament.graphqls", Input: `type Tournament {
-  start: Int!
-  end: Int!
-  name: String!
-  Location: Location
-  City: String!
-  Country: String!
-  OwnerId: ID!
-  Owner: User! @goField(forceResolver: true, name: "Owner")
-  Events: [Event!]! @goField(forceResolver: true, name: "Events")
-  EventIds: [ID!]!
-  Status: TournamentStatus!
-  Description: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1166,6 +1287,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_CreateEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["TournamentId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TournamentId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["TournamentId"] = arg0
+	var arg1 model.CreateEventInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNCreateEventInput2FenceLiveᚋgraphᚋmodelᚐCreateEventInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_CreateTournament_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1194,6 +1339,21 @@ func (ec *executionContext) field_Mutation_CreateUser_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_GetEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["EventId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("EventId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["EventId"] = arg0
 	return args, nil
 }
 
@@ -1249,6 +1409,252 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Athlete_userId(ctx context.Context, field graphql.CollectedField, obj *model.Athlete) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Athlete_userId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Athlete_userId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Athlete",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Athlete_User(ctx context.Context, field graphql.CollectedField, obj *model.Athlete) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Athlete_User(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Athlete().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖFenceLiveᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Athlete_User(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Athlete",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_User_Id(ctx, field)
+			case "Email":
+				return ec.fieldContext_User_Email(ctx, field)
+			case "BornIn":
+				return ec.fieldContext_User_BornIn(ctx, field)
+			case "UserName":
+				return ec.fieldContext_User_UserName(ctx, field)
+			case "FirstName":
+				return ec.fieldContext_User_FirstName(ctx, field)
+			case "LastName":
+				return ec.fieldContext_User_LastName(ctx, field)
+			case "ParticipatingTournamentsIds":
+				return ec.fieldContext_User_ParticipatingTournamentsIds(ctx, field)
+			case "ParticipatingTournaments":
+				return ec.fieldContext_User_ParticipatingTournaments(ctx, field)
+			case "LikedTournamentsIds":
+				return ec.fieldContext_User_LikedTournamentsIds(ctx, field)
+			case "LikedTournaments":
+				return ec.fieldContext_User_LikedTournaments(ctx, field)
+			case "FollowingUserIds":
+				return ec.fieldContext_User_FollowingUserIds(ctx, field)
+			case "Following":
+				return ec.fieldContext_User_Following(ctx, field)
+			case "FollowersUserIds":
+				return ec.fieldContext_User_FollowersUserIds(ctx, field)
+			case "Followers":
+				return ec.fieldContext_User_Followers(ctx, field)
+			case "Nationality":
+				return ec.fieldContext_User_Nationality(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Athlete_PooleSeeding(ctx context.Context, field graphql.CollectedField, obj *model.Athlete) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Athlete_PooleSeeding(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PooleSeeding, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Athlete_PooleSeeding(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Athlete",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Athlete_TableauSeeding(ctx context.Context, field graphql.CollectedField, obj *model.Athlete) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Athlete_TableauSeeding(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TableauSeeding, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Athlete_TableauSeeding(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Athlete",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Athlete_FinalRanking(ctx context.Context, field graphql.CollectedField, obj *model.Athlete) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Athlete_FinalRanking(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FinalRanking, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Athlete_FinalRanking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Athlete",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Club_Id(ctx context.Context, field graphql.CollectedField, obj *model.Club) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Club_Id(ctx, field)
@@ -1839,6 +2245,8 @@ func (ec *executionContext) fieldContext_Event_Tournament(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
 			case "start":
 				return ec.fieldContext_Tournament_start(ctx, field)
 			case "end":
@@ -1857,8 +2265,6 @@ func (ec *executionContext) fieldContext_Event_Tournament(ctx context.Context, f
 				return ec.fieldContext_Tournament_Owner(ctx, field)
 			case "Events":
 				return ec.fieldContext_Tournament_Events(ctx, field)
-			case "EventIds":
-				return ec.fieldContext_Tournament_EventIds(ctx, field)
 			case "Status":
 				return ec.fieldContext_Tournament_Status(ctx, field)
 			case "Description":
@@ -2104,9 +2510,9 @@ func (ec *executionContext) _Event_Athletes(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.([]*model.Athlete)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖFenceLiveᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNAthlete2ᚕᚖFenceLiveᚋgraphᚋmodelᚐAthleteᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Event_Athletes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2117,38 +2523,18 @@ func (ec *executionContext) fieldContext_Event_Athletes(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Id":
-				return ec.fieldContext_User_Id(ctx, field)
-			case "Email":
-				return ec.fieldContext_User_Email(ctx, field)
-			case "BornIn":
-				return ec.fieldContext_User_BornIn(ctx, field)
-			case "UserName":
-				return ec.fieldContext_User_UserName(ctx, field)
-			case "FirstName":
-				return ec.fieldContext_User_FirstName(ctx, field)
-			case "LastName":
-				return ec.fieldContext_User_LastName(ctx, field)
-			case "ParticipatingTournamentsIds":
-				return ec.fieldContext_User_ParticipatingTournamentsIds(ctx, field)
-			case "ParticipatingTournaments":
-				return ec.fieldContext_User_ParticipatingTournaments(ctx, field)
-			case "LikedTournamentsIds":
-				return ec.fieldContext_User_LikedTournamentsIds(ctx, field)
-			case "LikedTournaments":
-				return ec.fieldContext_User_LikedTournaments(ctx, field)
-			case "FollowingUserIds":
-				return ec.fieldContext_User_FollowingUserIds(ctx, field)
-			case "Following":
-				return ec.fieldContext_User_Following(ctx, field)
-			case "FollowersUserIds":
-				return ec.fieldContext_User_FollowersUserIds(ctx, field)
-			case "Followers":
-				return ec.fieldContext_User_Followers(ctx, field)
-			case "Nationality":
-				return ec.fieldContext_User_Nationality(ctx, field)
+			case "userId":
+				return ec.fieldContext_Athlete_userId(ctx, field)
+			case "User":
+				return ec.fieldContext_Athlete_User(ctx, field)
+			case "PooleSeeding":
+				return ec.fieldContext_Athlete_PooleSeeding(ctx, field)
+			case "TableauSeeding":
+				return ec.fieldContext_Athlete_TableauSeeding(ctx, field)
+			case "FinalRanking":
+				return ec.fieldContext_Athlete_FinalRanking(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Athlete", field.Name)
 		},
 	}
 	return fc, nil
@@ -2193,6 +2579,128 @@ func (ec *executionContext) fieldContext_Event_start(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_Pooles(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_Pooles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Event().Pooles(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Poole)
+	fc.Result = res
+	return ec.marshalNPoole2ᚕᚖFenceLiveᚋgraphᚋmodelᚐPooleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_Pooles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Poole_Id(ctx, field)
+			case "EventId":
+				return ec.fieldContext_Poole_EventId(ctx, field)
+			case "RefereeId":
+				return ec.fieldContext_Poole_RefereeId(ctx, field)
+			case "Referee":
+				return ec.fieldContext_Poole_Referee(ctx, field)
+			case "AthleteIds":
+				return ec.fieldContext_Poole_AthleteIds(ctx, field)
+			case "Athletes":
+				return ec.fieldContext_Poole_Athletes(ctx, field)
+			case "MatchIds":
+				return ec.fieldContext_Poole_MatchIds(ctx, field)
+			case "Matches":
+				return ec.fieldContext_Poole_Matches(ctx, field)
+			case "Status":
+				return ec.fieldContext_Poole_Status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Poole", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Event_Tableaus(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_Tableaus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Event().Tableaus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Tableau)
+	fc.Result = res
+	return ec.marshalNTableau2ᚕᚖFenceLiveᚋgraphᚋmodelᚐTableauᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_Tableaus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tableau_Id(ctx, field)
+			case "EventId":
+				return ec.fieldContext_Tableau_EventId(ctx, field)
+			case "Matches":
+				return ec.fieldContext_Tableau_Matches(ctx, field)
+			case "MatchIds":
+				return ec.fieldContext_Tableau_MatchIds(ctx, field)
+			case "Name":
+				return ec.fieldContext_Tableau_Name(ctx, field)
+			case "Status":
+				return ec.fieldContext_Tableau_Status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Tableau", field.Name)
 		},
 	}
 	return fc, nil
@@ -2366,9 +2874,9 @@ func (ec *executionContext) _EventDetails_Weapon(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Weapon)
+	res := resTmp.(model.EventWeapon)
 	fc.Result = res
-	return ec.marshalNWeapon2FenceLiveᚋgraphᚋmodelᚐWeapon(ctx, field.Selections, res)
+	return ec.marshalNEventWeapon2FenceLiveᚋgraphᚋmodelᚐEventWeapon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EventDetails_Weapon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2378,7 +2886,7 @@ func (ec *executionContext) fieldContext_EventDetails_Weapon(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Weapon does not have child fields")
+			return nil, errors.New("field of type EventWeapon does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2454,9 +2962,9 @@ func (ec *executionContext) _EventDetails_Gender(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Gender)
+	res := resTmp.(model.EventGenderMix)
 	fc.Result = res
-	return ec.marshalNGender2FenceLiveᚋgraphᚋmodelᚐGender(ctx, field.Selections, res)
+	return ec.marshalNEventGenderMix2FenceLiveᚋgraphᚋmodelᚐEventGenderMix(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EventDetails_Gender(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2466,7 +2974,7 @@ func (ec *executionContext) fieldContext_EventDetails_Gender(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Gender does not have child fields")
+			return nil, errors.New("field of type EventGenderMix does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2498,9 +3006,9 @@ func (ec *executionContext) _EventDetails_Category(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.AgeCategory)
+	res := resTmp.(model.EventAgeCategory)
 	fc.Result = res
-	return ec.marshalNAgeCategory2FenceLiveᚋgraphᚋmodelᚐAgeCategory(ctx, field.Selections, res)
+	return ec.marshalNEventAgeCategory2FenceLiveᚋgraphᚋmodelᚐEventAgeCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EventDetails_Category(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2510,7 +3018,7 @@ func (ec *executionContext) fieldContext_EventDetails_Category(ctx context.Conte
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type AgeCategory does not have child fields")
+			return nil, errors.New("field of type EventAgeCategory does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3184,6 +3692,93 @@ func (ec *executionContext) fieldContext_Match_Status(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_CreateEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateEvent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateEvent(rctx, fc.Args["TournamentId"].(string), fc.Args["input"].(model.CreateEventInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Event)
+	fc.Result = res
+	return ec.marshalNEvent2ᚖFenceLiveᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Event_Id(ctx, field)
+			case "Name":
+				return ec.fieldContext_Event_Name(ctx, field)
+			case "Description":
+				return ec.fieldContext_Event_Description(ctx, field)
+			case "Tournament":
+				return ec.fieldContext_Event_Tournament(ctx, field)
+			case "TournamentId":
+				return ec.fieldContext_Event_TournamentId(ctx, field)
+			case "RefereeIds":
+				return ec.fieldContext_Event_RefereeIds(ctx, field)
+			case "Referees":
+				return ec.fieldContext_Event_Referees(ctx, field)
+			case "AthleteIds":
+				return ec.fieldContext_Event_AthleteIds(ctx, field)
+			case "Athletes":
+				return ec.fieldContext_Event_Athletes(ctx, field)
+			case "start":
+				return ec.fieldContext_Event_start(ctx, field)
+			case "Pooles":
+				return ec.fieldContext_Event_Pooles(ctx, field)
+			case "Tableaus":
+				return ec.fieldContext_Event_Tableaus(ctx, field)
+			case "end":
+				return ec.fieldContext_Event_end(ctx, field)
+			case "Status":
+				return ec.fieldContext_Event_Status(ctx, field)
+			case "Details":
+				return ec.fieldContext_Event_Details(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateEvent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_CreateTournament(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_CreateTournament(ctx, field)
 	if err != nil {
@@ -3223,6 +3818,8 @@ func (ec *executionContext) fieldContext_Mutation_CreateTournament(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
 			case "start":
 				return ec.fieldContext_Tournament_start(ctx, field)
 			case "end":
@@ -3241,8 +3838,6 @@ func (ec *executionContext) fieldContext_Mutation_CreateTournament(ctx context.C
 				return ec.fieldContext_Tournament_Owner(ctx, field)
 			case "Events":
 				return ec.fieldContext_Tournament_Events(ctx, field)
-			case "EventIds":
-				return ec.fieldContext_Tournament_EventIds(ctx, field)
 			case "Status":
 				return ec.fieldContext_Tournament_Status(ctx, field)
 			case "Description":
@@ -3396,8 +3991,8 @@ func (ec *executionContext) fieldContext_Poole_Id(ctx context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _Poole_TournamentId(ctx context.Context, field graphql.CollectedField, obj *model.Poole) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Poole_TournamentId(ctx, field)
+func (ec *executionContext) _Poole_EventId(ctx context.Context, field graphql.CollectedField, obj *model.Poole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Poole_EventId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3410,7 +4005,7 @@ func (ec *executionContext) _Poole_TournamentId(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TournamentID, nil
+		return obj.EventID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3427,7 +4022,7 @@ func (ec *executionContext) _Poole_TournamentId(ctx context.Context, field graph
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Poole_TournamentId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Poole_EventId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Poole",
 		Field:      field,
@@ -3834,6 +4429,93 @@ func (ec *executionContext) fieldContext_Poole_Status(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_GetEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetEvent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetEvent(rctx, fc.Args["EventId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Event)
+	fc.Result = res
+	return ec.marshalNEvent2ᚖFenceLiveᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Event_Id(ctx, field)
+			case "Name":
+				return ec.fieldContext_Event_Name(ctx, field)
+			case "Description":
+				return ec.fieldContext_Event_Description(ctx, field)
+			case "Tournament":
+				return ec.fieldContext_Event_Tournament(ctx, field)
+			case "TournamentId":
+				return ec.fieldContext_Event_TournamentId(ctx, field)
+			case "RefereeIds":
+				return ec.fieldContext_Event_RefereeIds(ctx, field)
+			case "Referees":
+				return ec.fieldContext_Event_Referees(ctx, field)
+			case "AthleteIds":
+				return ec.fieldContext_Event_AthleteIds(ctx, field)
+			case "Athletes":
+				return ec.fieldContext_Event_Athletes(ctx, field)
+			case "start":
+				return ec.fieldContext_Event_start(ctx, field)
+			case "Pooles":
+				return ec.fieldContext_Event_Pooles(ctx, field)
+			case "Tableaus":
+				return ec.fieldContext_Event_Tableaus(ctx, field)
+			case "end":
+				return ec.fieldContext_Event_end(ctx, field)
+			case "Status":
+				return ec.fieldContext_Event_Status(ctx, field)
+			case "Details":
+				return ec.fieldContext_Event_Details(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetEvent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getAllTournaments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getAllTournaments(ctx, field)
 	if err != nil {
@@ -3873,6 +4555,8 @@ func (ec *executionContext) fieldContext_Query_getAllTournaments(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
 			case "start":
 				return ec.fieldContext_Tournament_start(ctx, field)
 			case "end":
@@ -3891,8 +4575,6 @@ func (ec *executionContext) fieldContext_Query_getAllTournaments(ctx context.Con
 				return ec.fieldContext_Tournament_Owner(ctx, field)
 			case "Events":
 				return ec.fieldContext_Tournament_Events(ctx, field)
-			case "EventIds":
-				return ec.fieldContext_Tournament_EventIds(ctx, field)
 			case "Status":
 				return ec.fieldContext_Tournament_Status(ctx, field)
 			case "Description":
@@ -4153,8 +4835,8 @@ func (ec *executionContext) fieldContext_Tableau_Id(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Tableau_TournamentId(ctx context.Context, field graphql.CollectedField, obj *model.Tableau) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Tableau_TournamentId(ctx, field)
+func (ec *executionContext) _Tableau_EventId(ctx context.Context, field graphql.CollectedField, obj *model.Tableau) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tableau_EventId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4167,7 +4849,7 @@ func (ec *executionContext) _Tableau_TournamentId(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TournamentID, nil
+		return obj.EventID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4184,7 +4866,7 @@ func (ec *executionContext) _Tableau_TournamentId(ctx context.Context, field gra
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Tableau_TournamentId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Tableau_EventId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Tableau",
 		Field:      field,
@@ -4390,6 +5072,50 @@ func (ec *executionContext) fieldContext_Tableau_Status(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type TournamentStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Tournament_Id(ctx context.Context, field graphql.CollectedField, obj *model.Tournament) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tournament_Id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Tournament_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Tournament",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4843,6 +5569,10 @@ func (ec *executionContext) fieldContext_Tournament_Events(ctx context.Context, 
 				return ec.fieldContext_Event_Athletes(ctx, field)
 			case "start":
 				return ec.fieldContext_Event_start(ctx, field)
+			case "Pooles":
+				return ec.fieldContext_Event_Pooles(ctx, field)
+			case "Tableaus":
+				return ec.fieldContext_Event_Tableaus(ctx, field)
 			case "end":
 				return ec.fieldContext_Event_end(ctx, field)
 			case "Status":
@@ -4851,50 +5581,6 @@ func (ec *executionContext) fieldContext_Tournament_Events(ctx context.Context, 
 				return ec.fieldContext_Event_Details(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tournament_EventIds(ctx context.Context, field graphql.CollectedField, obj *model.Tournament) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Tournament_EventIds(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EventIds, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Tournament_EventIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tournament",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5326,6 +6012,8 @@ func (ec *executionContext) fieldContext_User_ParticipatingTournaments(ctx conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
 			case "start":
 				return ec.fieldContext_Tournament_start(ctx, field)
 			case "end":
@@ -5344,8 +6032,6 @@ func (ec *executionContext) fieldContext_User_ParticipatingTournaments(ctx conte
 				return ec.fieldContext_Tournament_Owner(ctx, field)
 			case "Events":
 				return ec.fieldContext_Tournament_Events(ctx, field)
-			case "EventIds":
-				return ec.fieldContext_Tournament_EventIds(ctx, field)
 			case "Status":
 				return ec.fieldContext_Tournament_Status(ctx, field)
 			case "Description":
@@ -5440,6 +6126,8 @@ func (ec *executionContext) fieldContext_User_LikedTournaments(ctx context.Conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
 			case "start":
 				return ec.fieldContext_Tournament_start(ctx, field)
 			case "end":
@@ -5458,8 +6146,6 @@ func (ec *executionContext) fieldContext_User_LikedTournaments(ctx context.Conte
 				return ec.fieldContext_Tournament_Owner(ctx, field)
 			case "Events":
 				return ec.fieldContext_Tournament_Events(ctx, field)
-			case "EventIds":
-				return ec.fieldContext_Tournament_EventIds(ctx, field)
 			case "Status":
 				return ec.fieldContext_Tournament_Status(ctx, field)
 			case "Description":
@@ -7537,11 +8223,11 @@ func (ec *executionContext) unmarshalInputAthleteSeedingInput(ctx context.Contex
 
 	for k, v := range asMap {
 		switch k {
-		case "AthleteId":
+		case "UserId":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AthleteId"))
-			it.AthleteID, err = ec.unmarshalNID2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserId"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7629,6 +8315,29 @@ func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Details"))
 			it.Details, err = ec.unmarshalNDetailsInput2ᚖFenceLiveᚋgraphᚋmodelᚐDetailsInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateMatchInput(ctx context.Context, obj interface{}) (model.CreateMatchInput, error) {
+	var it model.CreateMatchInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "LeftAthlete":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("LeftAthlete"))
+			it.LeftAthlete, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7809,7 +8518,7 @@ func (ec *executionContext) unmarshalInputDetailsInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Weapon"))
-			it.Weapon, err = ec.unmarshalNWeapon2FenceLiveᚋgraphᚋmodelᚐWeapon(ctx, v)
+			it.Weapon, err = ec.unmarshalNEventWeapon2FenceLiveᚋgraphᚋmodelᚐEventWeapon(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7825,7 +8534,7 @@ func (ec *executionContext) unmarshalInputDetailsInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Gender"))
-			it.Gender, err = ec.unmarshalNGender2FenceLiveᚋgraphᚋmodelᚐGender(ctx, v)
+			it.Gender, err = ec.unmarshalNEventGenderMix2FenceLiveᚋgraphᚋmodelᚐEventGenderMix(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7833,7 +8542,7 @@ func (ec *executionContext) unmarshalInputDetailsInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Category"))
-			it.Category, err = ec.unmarshalNAgeCategory2FenceLiveᚋgraphᚋmodelᚐAgeCategory(ctx, v)
+			it.Category, err = ec.unmarshalNEventAgeCategory2FenceLiveᚋgraphᚋmodelᚐEventAgeCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7889,6 +8598,69 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var athleteImplementors = []string{"Athlete"}
+
+func (ec *executionContext) _Athlete(ctx context.Context, sel ast.SelectionSet, obj *model.Athlete) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, athleteImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Athlete")
+		case "userId":
+
+			out.Values[i] = ec._Athlete_userId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "User":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Athlete_User(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "PooleSeeding":
+
+			out.Values[i] = ec._Athlete_PooleSeeding(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "TableauSeeding":
+
+			out.Values[i] = ec._Athlete_TableauSeeding(ctx, field, obj)
+
+		case "FinalRanking":
+
+			out.Values[i] = ec._Athlete_FinalRanking(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var clubImplementors = []string{"Club"}
 
@@ -8106,6 +8878,46 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "Pooles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_Pooles(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "Tableaus":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_Tableaus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "end":
 
 			out.Values[i] = ec._Event_end(ctx, field, obj)
@@ -8378,6 +9190,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "CreateEvent":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateEvent(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "CreateTournament":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -8424,9 +9245,9 @@ func (ec *executionContext) _Poole(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "TournamentId":
+		case "EventId":
 
-			out.Values[i] = ec._Poole_TournamentId(ctx, field, obj)
+			out.Values[i] = ec._Poole_EventId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -8549,6 +9370,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "GetEvent":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetEvent(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getAllTournaments":
 			field := field
 
@@ -8635,9 +9479,9 @@ func (ec *executionContext) _Tableau(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "TournamentId":
+		case "EventId":
 
-			out.Values[i] = ec._Tableau_TournamentId(ctx, field, obj)
+			out.Values[i] = ec._Tableau_EventId(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -8704,6 +9548,13 @@ func (ec *executionContext) _Tournament(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Tournament")
+		case "Id":
+
+			out.Values[i] = ec._Tournament_Id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "start":
 
 			out.Values[i] = ec._Tournament_start(ctx, field, obj)
@@ -8790,13 +9641,6 @@ func (ec *executionContext) _Tournament(ctx context.Context, sel ast.SelectionSe
 				return innerFunc(ctx)
 
 			})
-		case "EventIds":
-
-			out.Values[i] = ec._Tournament_EventIds(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "Status":
 
 			out.Values[i] = ec._Tournament_Status(ctx, field, obj)
@@ -9309,14 +10153,58 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAgeCategory2FenceLiveᚋgraphᚋmodelᚐAgeCategory(ctx context.Context, v interface{}) (model.AgeCategory, error) {
-	var res model.AgeCategory
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNAthlete2ᚕᚖFenceLiveᚋgraphᚋmodelᚐAthleteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Athlete) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAthlete2ᚖFenceLiveᚋgraphᚋmodelᚐAthlete(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
-func (ec *executionContext) marshalNAgeCategory2FenceLiveᚋgraphᚋmodelᚐAgeCategory(ctx context.Context, sel ast.SelectionSet, v model.AgeCategory) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNAthlete2ᚖFenceLiveᚋgraphᚋmodelᚐAthlete(ctx context.Context, sel ast.SelectionSet, v *model.Athlete) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Athlete(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAthleteSeedingInput2ᚕᚖFenceLiveᚋgraphᚋmodelᚐAthleteSeedingInputᚄ(ctx context.Context, v interface{}) ([]*model.AthleteSeedingInput, error) {
@@ -9356,6 +10244,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateEventInput2FenceLiveᚋgraphᚋmodelᚐCreateEventInput(ctx context.Context, v interface{}) (model.CreateEventInput, error) {
+	res, err := ec.unmarshalInputCreateEventInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateEventInput2ᚕᚖFenceLiveᚋgraphᚋmodelᚐCreateEventInputᚄ(ctx context.Context, v interface{}) ([]*model.CreateEventInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -9391,6 +10284,10 @@ func (ec *executionContext) unmarshalNCreateUserInput2FenceLiveᚋgraphᚋmodel�
 func (ec *executionContext) unmarshalNDetailsInput2ᚖFenceLiveᚋgraphᚋmodelᚐDetailsInput(ctx context.Context, v interface{}) (*model.DetailsInput, error) {
 	res, err := ec.unmarshalInputDetailsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEvent2FenceLiveᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v model.Event) graphql.Marshaler {
+	return ec._Event(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNEvent2ᚕᚖFenceLiveᚋgraphᚋmodelᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {
@@ -9447,6 +10344,16 @@ func (ec *executionContext) marshalNEvent2ᚖFenceLiveᚋgraphᚋmodelᚐEvent(c
 	return ec._Event(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEventAgeCategory2FenceLiveᚋgraphᚋmodelᚐEventAgeCategory(ctx context.Context, v interface{}) (model.EventAgeCategory, error) {
+	var res model.EventAgeCategory
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEventAgeCategory2FenceLiveᚋgraphᚋmodelᚐEventAgeCategory(ctx context.Context, sel ast.SelectionSet, v model.EventAgeCategory) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNEventDetails2ᚖFenceLiveᚋgraphᚋmodelᚐEventDetails(ctx context.Context, sel ast.SelectionSet, v *model.EventDetails) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -9457,6 +10364,16 @@ func (ec *executionContext) marshalNEventDetails2ᚖFenceLiveᚋgraphᚋmodelᚐ
 	return ec._EventDetails(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEventGenderMix2FenceLiveᚋgraphᚋmodelᚐEventGenderMix(ctx context.Context, v interface{}) (model.EventGenderMix, error) {
+	var res model.EventGenderMix
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEventGenderMix2FenceLiveᚋgraphᚋmodelᚐEventGenderMix(ctx context.Context, sel ast.SelectionSet, v model.EventGenderMix) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNEventType2FenceLiveᚋgraphᚋmodelᚐEventType(ctx context.Context, v interface{}) (model.EventType, error) {
 	var res model.EventType
 	err := res.UnmarshalGQL(v)
@@ -9464,6 +10381,16 @@ func (ec *executionContext) unmarshalNEventType2FenceLiveᚋgraphᚋmodelᚐEven
 }
 
 func (ec *executionContext) marshalNEventType2FenceLiveᚋgraphᚋmodelᚐEventType(ctx context.Context, sel ast.SelectionSet, v model.EventType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNEventWeapon2FenceLiveᚋgraphᚋmodelᚐEventWeapon(ctx context.Context, v interface{}) (model.EventWeapon, error) {
+	var res model.EventWeapon
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEventWeapon2FenceLiveᚋgraphᚋmodelᚐEventWeapon(ctx context.Context, sel ast.SelectionSet, v model.EventWeapon) graphql.Marshaler {
 	return v
 }
 
@@ -9480,16 +10407,6 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return graphql.WrapContextMarshaler(ctx, res)
-}
-
-func (ec *executionContext) unmarshalNGender2FenceLiveᚋgraphᚋmodelᚐGender(ctx context.Context, v interface{}) (model.Gender, error) {
-	var res model.Gender
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGender2FenceLiveᚋgraphᚋmodelᚐGender(ctx context.Context, sel ast.SelectionSet, v model.Gender) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -9618,6 +10535,60 @@ func (ec *executionContext) marshalNMatchStatus2FenceLiveᚋgraphᚋmodelᚐMatc
 	return v
 }
 
+func (ec *executionContext) marshalNPoole2ᚕᚖFenceLiveᚋgraphᚋmodelᚐPooleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Poole) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPoole2ᚖFenceLiveᚋgraphᚋmodelᚐPoole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPoole2ᚖFenceLiveᚋgraphᚋmodelᚐPoole(ctx context.Context, sel ast.SelectionSet, v *model.Poole) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Poole(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9631,6 +10602,60 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNTableau2ᚕᚖFenceLiveᚋgraphᚋmodelᚐTableauᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tableau) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTableau2ᚖFenceLiveᚋgraphᚋmodelᚐTableau(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTableau2ᚖFenceLiveᚋgraphᚋmodelᚐTableau(ctx context.Context, sel ast.SelectionSet, v *model.Tableau) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Tableau(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTournament2FenceLiveᚋgraphᚋmodelᚐTournament(ctx context.Context, sel ast.SelectionSet, v model.Tournament) graphql.Marshaler {
@@ -9757,16 +10782,6 @@ func (ec *executionContext) marshalNUser2ᚖFenceLiveᚋgraphᚋmodelᚐUser(ctx
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNWeapon2FenceLiveᚋgraphᚋmodelᚐWeapon(ctx context.Context, v interface{}) (model.Weapon, error) {
-	var res model.Weapon
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNWeapon2FenceLiveᚋgraphᚋmodelᚐWeapon(ctx context.Context, sel ast.SelectionSet, v model.Weapon) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -10045,6 +11060,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint64(ctx context.Context, v interface{}) (*int64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt64(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint64(ctx context.Context, sel ast.SelectionSet, v *int64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt64(*v)
 	return res
 }
 
