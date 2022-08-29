@@ -5,8 +5,8 @@ CREATE TABLE tournaments (
   owner_id SERIAL NOT NULL,
   name varchar(255) NOT NULL,
   description text NOT NULL,
-  start timestamp NOT NULL,
-  end timestamp NOT NULL,
+  start_time timestamp NOT NULL,
+  end_time timestamp NOT NULL,
   city varchar(255),
   country varchar(255),
   status varchar(255),
@@ -23,5 +23,5 @@ CREATE TABLE tournaments (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS tournaments;
+DROP TABLE IF EXISTS tournaments CASCADE;
 -- +goose StatementEnd

@@ -61,7 +61,7 @@ type CreateTournamentInput struct {
 
 type CreateUserInput struct {
 	Email          string `json:"Email"`
-	BornIn         int64  `json:"BornIn"`
+	BornIn         string `json:"BornIn"`
 	HashedPassword string `json:"HashedPassword"`
 	UserName       string `json:"UserName"`
 	FirstName      string `json:"FirstName"`
@@ -165,7 +165,7 @@ type Tournament struct {
 type User struct {
 	ID                          string        `json:"Id"`
 	Email                       string        `json:"Email"`
-	BornIn                      int64         `json:"BornIn"`
+	BornIn                      string        `json:"BornIn"`
 	UserName                    string        `json:"UserName"`
 	FirstName                   *string       `json:"FirstName"`
 	LastName                    *string       `json:"LastName"`

@@ -1,9 +1,15 @@
 package main
 
+//go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable' status
+//go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=./internal/ports/database/gen
+
 import (
 	"FenceLive/graph"
 	"FenceLive/graph/generated"
 	"FenceLive/internal/config"
+	"FenceLive/internal/ports/database"
+	"FenceLive/internal/setup"
+	"FenceLive/internal/usecases"
 	"context"
 	"errors"
 	"log"
@@ -29,13 +35,17 @@ func main() {
 func run() error {
 	log.Println("Reding configuration...")
 	configuration := config.LoadConfig()
-	// dbConn, err := setup.SetupDb(configuration)
-	// if err != nil {
-	// 	log.Println("Error while connecting to database")
-	// 	return err
-	// }
+	dbConn, err := setup.SetupDb(configuration)
+	if err != nil {
+		log.Println("Error while connecting to database")
+		return err
+	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graph.Resolver{},
+		Resolvers: &graph.Resolver{
+			Users:       usecases.NewUserUsecase(database.NewUserDatabaseStore(dbConn)),
+			Mapper:      graph.NweGqlMapper(),
+			InputMapper: graph.NewInputMapper(),
+		},
 	}))
 
 	router := mux.NewRouter()
