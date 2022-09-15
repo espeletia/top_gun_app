@@ -10,6 +10,7 @@ import (
 
 type UserStoreInterface interface {
 	CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error)
+	GetAllUsers(ctx context.Context) ([]*domain.User, error)
 	//GetUser(id string) (*User, error)
 	//GetUserByEmail(email string) (*User, error)
 	//GetUserByUsername(username string) (*User, error)
@@ -63,4 +64,36 @@ func (udbs *UserDatabaseStore) CreateUser(ctx context.Context, user *domain.User
 			Hash:        dest.Hash,
 			BornIn:      dest.BornIn,
 			Nationality: dest.Nationality}}, nil
+}
+
+func (udbs *UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
+	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users)
+
+	var dest []struct {
+		model.Users
+	}
+
+	err := stmt.Query(udbs.db, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*domain.User
+
+	for _, user := range dest {
+		tempUser := *&domain.User{
+			ID: int64(user.ID),
+			UserData: domain.UserData{
+				BornIn:      user.BornIn,
+				Email:       user.Email,
+				Username:    user.Username,
+				FirstName:   user.FirstName,
+				LastName:    user.LastName,
+				Hash:        user.Hash,
+				Nationality: user.Nationality,
+			},
+		}
+		users = append(users, &tempUser)
+	}
+	return users, nil
 }

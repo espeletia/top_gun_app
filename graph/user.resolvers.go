@@ -27,7 +27,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 }
 
 func (r *queryResolver) GetAllUsers(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	users, err := r.Users.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapUserArray(users)
 }
 
 func (r *userResolver) ParticipatingTournaments(ctx context.Context, obj *model.User) ([]*model.Tournament, error) {
