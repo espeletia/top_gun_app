@@ -11,11 +11,27 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	userData, err := r.InputMapper.MapUser(input)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.Users.CreateUser(ctx, userData)
+	if err != nil {
+		return nil, err
+	}
+	mappedUser, err := r.Mapper.MapUser(user)
+	if err != nil {
+		return nil, err
+	}
+	return mappedUser, nil
 }
 
 func (r *queryResolver) GetAllUsers(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	users, err := r.Users.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapUserArray(users)
 }
 
 func (r *userResolver) ParticipatingTournaments(ctx context.Context, obj *model.User) ([]*model.Tournament, error) {

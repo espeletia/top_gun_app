@@ -1,9 +1,16 @@
 package main
 
+//go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable' status
+//go:generate go run github.com/99designs/gqlgen generate
+//go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=../internal/ports/database/gen
+
 import (
 	"FenceLive/graph"
 	"FenceLive/graph/generated"
 	"FenceLive/internal/config"
+	"FenceLive/internal/ports/database"
+	"FenceLive/internal/setup"
+	"FenceLive/internal/usecases"
 	"context"
 	"errors"
 	"log"
@@ -29,13 +36,17 @@ func main() {
 func run() error {
 	log.Println("Reding configuration...")
 	configuration := config.LoadConfig()
-	// dbConn, err := setup.SetupDb(configuration)
-	// if err != nil {
-	// 	log.Println("Error while connecting to database")
-	// 	return err
-	// }
+	dbConn, err := setup.SetupDb(configuration)
+	if err != nil {
+		log.Println("Error while connecting to database")
+		return err
+	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graph.Resolver{},
+		Resolvers: &graph.Resolver{
+			Users:       usecases.NewUserUsecase(database.NewUserDatabaseStore(dbConn)),
+			Mapper:      graph.NweGqlMapper(),
+			InputMapper: graph.NewInputMapper(),
+		},
 	}))
 
 	router := mux.NewRouter()
@@ -47,8 +58,11 @@ func run() error {
 }
 
 func serve(mux *mux.Router, config *config.Config) error {
-	logger := zap.S()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
 
+	sugar.Info("logger works now")
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
@@ -66,9 +80,8 @@ func serve(mux *mux.Router, config *config.Config) error {
 		Handler:      handler,
 	}
 	serverErrors := make(chan error, 1)
-	logger.Info("Starting server...")
 	go func() {
-		logger.Infof("Connect to http://localhost:%s/ for GraphQL playground", config.ServerConfig.Port)
+		sugar.Infof("Connect to http://localhost:%s/ for GraphQL playground", config.ServerConfig.Port)
 		if config.ServerConfig.TLSEnable {
 			serverErrors <- api.ListenAndServeTLS(config.ServerConfig.TLSCertPath, config.ServerConfig.TLSKeyPath)
 		} else {
@@ -81,13 +94,11 @@ func serve(mux *mux.Router, config *config.Config) error {
 		return err
 
 	case sig := <-shutdown:
-		logger.Infof("%v : Shuting down gracefully", sig)
 		ctx, cancel := context.WithTimeout(context.Background(), config.ServerConfig.ShutdownTimeout)
 		defer cancel()
 
 		err := api.Shutdown(ctx)
 		if err != nil {
-			logger.Infof("Shuting down did not complete, %v", err)
 			err = api.Close()
 		}
 

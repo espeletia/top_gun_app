@@ -8,10 +8,11 @@ type User struct {
 }
 
 type UserData struct {
-	BornIn    time.Time
-	Email     string
-	Username  string
-	FirstName string
-	LastName  string
-	Hash      string
+	BornIn      time.Time
+	Email       string
+	Username    string
+	FirstName   string
+	LastName    string
+	Hash        string
+	Nationality string
 }

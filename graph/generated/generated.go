@@ -1249,7 +1249,7 @@ enum UserRoles {
 type User{
   Id: ID!
   Email: String!
-  BornIn: Int!
+  BornIn: String!
   UserName: String!
   FirstName: String
   LastName: String
@@ -1266,7 +1266,7 @@ type User{
 
 input CreateUserInput{
   Email: String!
-  BornIn: Int!
+  BornIn: String!
   HashedPassword: String!
   UserName: String!
   FirstName: String!
@@ -5785,9 +5785,9 @@ func (ec *executionContext) _User_BornIn(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_BornIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5797,7 +5797,7 @@ func (ec *executionContext) fieldContext_User_BornIn(ctx context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8455,7 +8455,7 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("BornIn"))
-			it.BornIn, err = ec.unmarshalNInt2int64(ctx, v)
+			it.BornIn, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

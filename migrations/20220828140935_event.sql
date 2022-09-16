@@ -5,8 +5,8 @@ CREATE TABLE events (
   name varchar(255) NOT NULL,
   description TEXT,
   tournament_id SERIAL NOT NULL,
-  start timestamp NOT NULL,
-  end timestamp NOT NULL,
+  start_time timestamp NOT NULL,
+  end_time timestamp NOT NULL,
   status varchar(255),
   weapon varchar(255),
   type varchar(255),
@@ -21,5 +21,5 @@ CREATE TABLE events (
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
+DROP TABLE IF EXISTS events CASCADE;
 -- +goose StatementEnd

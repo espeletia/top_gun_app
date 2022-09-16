@@ -11,5 +11,5 @@ CREATE TABLE user_following (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS user_following;
+DROP TABLE IF EXISTS user_following CASCADE;
 -- +goose StatementEnd

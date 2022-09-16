@@ -20,3 +20,8 @@ func (uu UserUsecase) CreateUser(ctx context.Context, user *domain.UserData) (*d
 	stored, err := uu.store.CreateUser(ctx, user)
 	return stored, err
 }
+
+func (uu UserUsecase) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
+	users, err := uu.store.GetAllUsers(ctx)
+	return users, err
+}

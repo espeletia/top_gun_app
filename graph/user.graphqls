@@ -13,7 +13,7 @@ enum UserRoles {
 type User{
   Id: ID!
   Email: String!
-  BornIn: Int!
+  BornIn: String!
   UserName: String!
   FirstName: String
   LastName: String
@@ -30,7 +30,7 @@ type User{
 
 input CreateUserInput{
   Email: String!
-  BornIn: Int!
+  BornIn: String!
   HashedPassword: String!
   UserName: String!
   FirstName: String!
