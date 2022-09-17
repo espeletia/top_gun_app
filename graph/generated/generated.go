@@ -137,6 +137,7 @@ type ComplexityRoot struct {
 		GetAllTournaments func(childComplexity int) int
 		GetAllUsers       func(childComplexity int) int
 		GetEvent          func(childComplexity int, eventID string) int
+		GetUserByID       func(childComplexity int, userID string) int
 	}
 
 	Tableau struct {
@@ -223,6 +224,7 @@ type QueryResolver interface {
 	GetEvent(ctx context.Context, eventID string) (*model.Event, error)
 	GetAllTournaments(ctx context.Context) ([]*model.Tournament, error)
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
+	GetUserByID(ctx context.Context, userID string) (*model.User, error)
 }
 type TableauResolver interface {
 	Matches(ctx context.Context, obj *model.Tableau) ([]*model.Match, error)
@@ -695,6 +697,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetEvent(childComplexity, args["EventId"].(string)), true
+
+	case "Query.getUserByID":
+		if e.complexity.Query.GetUserByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserByID(childComplexity, args["UserID"].(string)), true
 
 	case "Tableau.EventId":
 		if e.complexity.Tableau.EventID == nil {
@@ -1276,6 +1290,7 @@ input CreateUserInput{
 
 extend type Query {
   getAllUsers: [User!]!
+  getUserByID(UserID: ID!): User! 
 }
 
 extend type Mutation {
@@ -1369,6 +1384,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["UserID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["UserID"] = arg0
 	return args, nil
 }
 
@@ -4658,6 +4688,93 @@ func (ec *executionContext) fieldContext_Query_getAllUsers(ctx context.Context, 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getUserByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUserByID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserByID(rctx, fc.Args["UserID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖFenceLiveᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUserByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_User_Id(ctx, field)
+			case "Email":
+				return ec.fieldContext_User_Email(ctx, field)
+			case "BornIn":
+				return ec.fieldContext_User_BornIn(ctx, field)
+			case "UserName":
+				return ec.fieldContext_User_UserName(ctx, field)
+			case "FirstName":
+				return ec.fieldContext_User_FirstName(ctx, field)
+			case "LastName":
+				return ec.fieldContext_User_LastName(ctx, field)
+			case "ParticipatingTournamentsIds":
+				return ec.fieldContext_User_ParticipatingTournamentsIds(ctx, field)
+			case "ParticipatingTournaments":
+				return ec.fieldContext_User_ParticipatingTournaments(ctx, field)
+			case "LikedTournamentsIds":
+				return ec.fieldContext_User_LikedTournamentsIds(ctx, field)
+			case "LikedTournaments":
+				return ec.fieldContext_User_LikedTournaments(ctx, field)
+			case "FollowingUserIds":
+				return ec.fieldContext_User_FollowingUserIds(ctx, field)
+			case "Following":
+				return ec.fieldContext_User_Following(ctx, field)
+			case "FollowersUserIds":
+				return ec.fieldContext_User_FollowersUserIds(ctx, field)
+			case "Followers":
+				return ec.fieldContext_User_Followers(ctx, field)
+			case "Nationality":
+				return ec.fieldContext_User_Nationality(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getUserByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -9426,6 +9543,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllUsers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserByID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserByID(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

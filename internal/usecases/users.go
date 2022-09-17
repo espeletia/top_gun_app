@@ -25,3 +25,7 @@ func (uu UserUsecase) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
 	users, err := uu.store.GetAllUsers(ctx)
 	return users, err
 }
+
+func (uu UserUsecase) GetUser(ctx context.Context, Id int64) (*domain.User, error) {
+	return uu.store.GetUser(ctx, Id)
+}

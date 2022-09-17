@@ -6,12 +6,14 @@ import (
 	"FenceLive/internal/ports/database/gen/FenceLive/public/table"
 	"context"
 	"database/sql"
+
+	"github.com/go-jet/jet/v2/postgres"
 )
 
 type UserStoreInterface interface {
 	CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error)
 	GetAllUsers(ctx context.Context) ([]*domain.User, error)
-	//GetUser(id string) (*User, error)
+	GetUser(ctx context.Context, id int64) (*domain.User, error)
 	//GetUserByEmail(email string) (*User, error)
 	//GetUserByUsername(username string) (*User, error)
 	//GetUsers() ([]*User, error)
@@ -96,4 +98,31 @@ func (udbs *UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User,
 		users = append(users, &tempUser)
 	}
 	return users, nil
+}
+
+func (udbs *UserDatabaseStore) GetUser(ctx context.Context, id int64) (*domain.User, error) {
+	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.ID.EQ(postgres.Int(id)))
+
+	var dest []struct {
+		model.Users
+	}
+
+	err := stmt.Query(udbs.db, &dest)
+	if err != nil {
+		return nil, err
+	}
+	if len(dest) < 1 {
+		return nil, domain.UserNotFound
+	}
+
+	return &domain.User{
+		ID: int64(dest[0].ID),
+		UserData: domain.UserData{
+			Email:       dest[0].Email,
+			FirstName:   dest[0].FirstName,
+			LastName:    dest[0].LastName,
+			Username:    dest[0].Username,
+			Hash:        dest[0].Hash,
+			BornIn:      dest[0].BornIn,
+			Nationality: dest[0].Nationality}}, nil
 }
