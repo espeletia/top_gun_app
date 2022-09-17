@@ -8,6 +8,7 @@ import (
 	"FenceLive/graph/model"
 	"context"
 	"fmt"
+	"strconv"
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
@@ -32,6 +33,18 @@ func (r *queryResolver) GetAllUsers(ctx context.Context) ([]*model.User, error) 
 		return nil, err
 	}
 	return r.Mapper.MapUserArray(users)
+}
+
+func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
+	Id, err := strconv.Atoi(userID)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.Users.GetUser(ctx, int64(Id))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapUser(user)
 }
 
 func (r *userResolver) ParticipatingTournaments(ctx context.Context, obj *model.User) ([]*model.Tournament, error) {
