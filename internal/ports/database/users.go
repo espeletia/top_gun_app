@@ -23,15 +23,15 @@ type UserStoreInterface interface {
 
 func NewUserDatabaseStore(db *sql.DB) *UserDatabaseStore {
 	return &UserDatabaseStore{
-		db: db,
+		DB: db,
 	}
 }
 
 type UserDatabaseStore struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
-func (udbs *UserDatabaseStore) CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error) {
+func (udbs UserDatabaseStore) CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error) {
 
 	modelUser := model.Users{
 		Email:       user.Email,
@@ -51,7 +51,7 @@ func (udbs *UserDatabaseStore) CreateUser(ctx context.Context, user *domain.User
 		model.Users
 	}
 
-	err := stmt.Query(udbs.db, &dest)
+	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +68,14 @@ func (udbs *UserDatabaseStore) CreateUser(ctx context.Context, user *domain.User
 			Nationality: dest.Nationality}}, nil
 }
 
-func (udbs *UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
+func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
 	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users)
 
 	var dest []struct {
 		model.Users
 	}
 
-	err := stmt.Query(udbs.db, &dest)
+	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
 		return nil, err
 	}
@@ -100,14 +100,14 @@ func (udbs *UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User,
 	return users, nil
 }
 
-func (udbs *UserDatabaseStore) GetUser(ctx context.Context, id int64) (*domain.User, error) {
+func (udbs UserDatabaseStore) GetUser(ctx context.Context, id int64) (*domain.User, error) {
 	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.ID.EQ(postgres.Int(id)))
 
 	var dest []struct {
 		model.Users
 	}
 
-	err := stmt.Query(udbs.db, &dest)
+	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
 		return nil, err
 	}

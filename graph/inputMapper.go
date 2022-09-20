@@ -27,3 +27,7 @@ func (gim GqlInputMapper) MapUser(input model.CreateUserInput) (*domain.UserData
 	}
 	return userData, error
 }
+
+func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*domain.TournamentData, error) {
+	return nil, nil
+}
