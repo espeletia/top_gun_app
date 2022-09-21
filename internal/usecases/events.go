@@ -16,6 +16,6 @@ type EventUsecase struct {
 	store database.EventStoreInterface
 }
 
-func (eu EventUsecase) CreateEvent(ctx context.Context, event domain.EventData) (*domain.Event, error) {
-	return eu.store.CreateEvent(ctx, event)
+func (eu EventUsecase) CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error) {
+	return eu.store.CreateEvent(ctx, event, tournamentId)
 }

@@ -6,12 +6,29 @@ package graph
 import (
 	"FenceLive/graph/generated"
 	"FenceLive/graph/model"
+	"FenceLive/internal/domain"
 	"context"
 	"fmt"
 )
 
 func (r *mutationResolver) CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error) {
-	panic(fmt.Errorf("not implemented"))
+	tournamentInput, eventInput, err := r.InputMapper.MapTournament(input)
+	if err != nil {
+		return nil, err
+	}
+	tournament, err := r.Tournaments.CreateTournament(ctx, *tournamentInput)
+	if err != nil {
+		return nil, err
+	}
+	var events []*domain.Event
+	for _, event := range eventInput {
+		event, err := r.Events.CreateEvent(ctx, *event, tournament.Id)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	return 
 }
 
 func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournament, error) {

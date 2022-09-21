@@ -99,7 +99,7 @@ type ComplexityRoot struct {
 	Location struct {
 		Address func(childComplexity int) int
 		Lat     func(childComplexity int) int
-		Long    func(childComplexity int) int
+		Lon     func(childComplexity int) int
 	}
 
 	Match struct {
@@ -496,12 +496,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Lat(childComplexity), true
 
-	case "Location.Long":
-		if e.complexity.Location.Long == nil {
+	case "Location.Lon":
+		if e.complexity.Location.Lon == nil {
 			break
 		}
 
-		return e.complexity.Location.Long(childComplexity), true
+		return e.complexity.Location.Lon(childComplexity), true
 
 	case "Match.Id":
 		if e.complexity.Match.ID == nil {
@@ -1218,7 +1218,7 @@ type Tournament {
 
 type Location {
   Lat: Float!
-  Long: Float!
+  Lon: Float!
   Address: String!
 }
 
@@ -1236,7 +1236,7 @@ input CreateTournamentInput{
 
 input LocationInput{
   Lat: Float!
-  Long: Float!
+  Lon: Float!
   Address: String!
 }
 
@@ -1812,8 +1812,8 @@ func (ec *executionContext) fieldContext_Club_Location(ctx context.Context, fiel
 			switch field.Name {
 			case "Lat":
 				return ec.fieldContext_Location_Lat(ctx, field)
-			case "Long":
-				return ec.fieldContext_Location_Long(ctx, field)
+			case "Lon":
+				return ec.fieldContext_Location_Lon(ctx, field)
 			case "Address":
 				return ec.fieldContext_Location_Address(ctx, field)
 			}
@@ -3098,8 +3098,8 @@ func (ec *executionContext) fieldContext_Location_Lat(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Location_Long(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Location_Long(ctx, field)
+func (ec *executionContext) _Location_Lon(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Location_Lon(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3112,7 +3112,7 @@ func (ec *executionContext) _Location_Long(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Long, nil
+		return obj.Lon, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3129,7 +3129,7 @@ func (ec *executionContext) _Location_Long(ctx context.Context, field graphql.Co
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Location_Long(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Location_Lon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Location",
 		Field:      field,
@@ -5408,8 +5408,8 @@ func (ec *executionContext) fieldContext_Tournament_Location(ctx context.Context
 			switch field.Name {
 			case "Lat":
 				return ec.fieldContext_Location_Lat(ctx, field)
-			case "Long":
-				return ec.fieldContext_Location_Long(ctx, field)
+			case "Lon":
+				return ec.fieldContext_Location_Lon(ctx, field)
 			case "Address":
 				return ec.fieldContext_Location_Address(ctx, field)
 			}
@@ -8686,11 +8686,11 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "Long":
+		case "Lon":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Long"))
-			it.Long, err = ec.unmarshalNFloat2float64(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Lon"))
+			it.Lon, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9133,9 +9133,9 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Long":
+		case "Lon":
 
-			out.Values[i] = ec._Location_Long(ctx, field, obj)
+			out.Values[i] = ec._Location_Lon(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

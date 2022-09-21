@@ -36,3 +36,22 @@ func (gm GqlMapper) MapUserArray(users []*domain.User) ([]*model.User, error) {
 	}
 	return mappedUserArray, nil
 }
+
+func (gm GqlMapper) MapTournament(tournament *domain.Tournament) (*model.Tournament, error) {
+	mappedTournament := &model.Tournament{
+		ID:    strconv.Itoa(int(tournament.Id)),
+		Start: int64(tournament.Start.Unix()),
+		End:   int64(tournament.End.Unix()),
+		Name:  tournament.Name,
+		Location: &model.Location{
+			Lat:     tournament.Location.Lat,
+			Lon:     tournament.Location.Lon,
+			Address: tournament.Location.Address,
+		},
+		City:        tournament.City,
+		Status:      model.TournamentStatus(tournament.Status),
+		Description: tournament.Description,
+		OwnerID:     strconv.Itoa(int(tournament.OwnerId)),
+	}
+	return mappedTournament, nil
+}

@@ -83,7 +83,7 @@ func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, 
 	var users []*domain.User
 
 	for _, user := range dest {
-		tempUser := *&domain.User{
+		tempUser := domain.User{
 			ID: int64(user.ID),
 			UserData: domain.UserData{
 				BornIn:      user.BornIn,

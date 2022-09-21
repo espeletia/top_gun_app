@@ -103,13 +103,13 @@ type EventDetails struct {
 
 type Location struct {
 	Lat     float64 `json:"Lat"`
-	Long    float64 `json:"Long"`
+	Lon     float64 `json:"Lon"`
 	Address string  `json:"Address"`
 }
 
 type LocationInput struct {
 	Lat     float64 `json:"Lat"`
-	Long    float64 `json:"Long"`
+	Lon     float64 `json:"Lon"`
 	Address string  `json:"Address"`
 }
 

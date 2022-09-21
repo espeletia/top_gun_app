@@ -2,7 +2,6 @@ package database
 
 import (
 	"FenceLive/internal/domain"
-	_ "FenceLive/migrations"
 	"context"
 	"database/sql"
 	"fmt"

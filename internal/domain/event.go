@@ -11,13 +11,12 @@ type Event struct {
 }
 
 type EventData struct {
-	Name         string
-	Description  *string
-	TournamentId int64
-	Start        time.Time
-	End          time.Time
-	Weapon       string
-	Type         string
-	Gender       string
-	Category     string
+	Name        string
+	Description *string
+	Start       time.Time
+	End         time.Time
+	Weapon      string
+	Type        string
+	Gender      string
+	Category    string
 }

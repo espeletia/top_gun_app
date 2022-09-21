@@ -23,7 +23,7 @@ type Tournament {
 
 type Location {
   Lat: Float!
-  Long: Float!
+  Lon: Float!
   Address: String!
 }
 
@@ -41,7 +41,7 @@ input CreateTournamentInput{
 
 input LocationInput{
   Lat: Float!
-  Long: Float!
+  Lon: Float!
   Address: String!
 }
 

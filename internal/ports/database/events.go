@@ -9,7 +9,7 @@ import (
 )
 
 type EventStoreInterface interface {
-	CreateEvent(ctx context.Context, event domain.EventData) (*domain.Event, error)
+	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
 }
 
 type EventDatabaseStore struct {
@@ -22,11 +22,11 @@ func NewEventDatabaseStore(db *sql.DB) EventDatabaseStore {
 	}
 }
 
-func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.EventData) (*domain.Event, error) {
+func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error) {
 	modelEvent := model.Events{
 		Name:         event.Name,
 		Description:  event.Description,
-		TournamentID: int32(event.TournamentId),
+		TournamentID: int32(tournamentId),
 		StartTime:    event.Start,
 		EndTime:      event.End,
 		Status:       "CREATED",
@@ -53,15 +53,14 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 		ID:     int64(dest.ID),
 		Status: dest.Status,
 		EventData: domain.EventData{
-			Name:         dest.Name,
-			TournamentId: int64(dest.TournamentID),
-			Type:         dest.Type,
-			Gender:       dest.Gender,
-			Category:     dest.Category,
-			Description:  dest.Description,
-			Weapon:       dest.Weapon,
-			Start:        dest.StartTime,
-			End:          dest.EndTime,
+			Name:        dest.Name,
+			Type:        dest.Type,
+			Gender:      dest.Gender,
+			Category:    dest.Category,
+			Description: dest.Description,
+			Weapon:      dest.Weapon,
+			Start:       dest.StartTime,
+			End:         dest.EndTime,
 		},
 	}, nil
 }
