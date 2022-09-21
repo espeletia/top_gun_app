@@ -6,10 +6,13 @@ import (
 	"FenceLive/internal/ports/database/gen/FenceLive/public/table"
 	"context"
 	"database/sql"
+
+	"github.com/go-jet/jet/v2/postgres"
 )
 
 type EventStoreInterface interface {
 	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
+	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
 }
 
 type EventDatabaseStore struct {
@@ -50,8 +53,9 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	}
 
 	return &domain.Event{
-		ID:     int64(dest.ID),
-		Status: dest.Status,
+		ID:           int64(dest.ID),
+		Status:       dest.Status,
+		TournamentId: int64(dest.TournamentID),
 		EventData: domain.EventData{
 			Name:        dest.Name,
 			Type:        dest.Type,
@@ -63,4 +67,39 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 			End:         dest.EndTime,
 		},
 	}, nil
+}
+
+func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error) {
+	stmt := table.Events.SELECT(table.Events.AllColumns).
+		WHERE(table.Events.TournamentID.EQ(postgres.Int(tournamentId)))
+
+	var dest []struct {
+		model.Events
+	}
+
+	err := stmt.Query(edbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	var events []*domain.Event
+
+	for _, evnt := range dest {
+		events = append(events, &domain.Event{
+			ID:           int64(evnt.ID),
+			Status:       evnt.Status,
+			TournamentId: int64(evnt.TournamentID),
+			EventData: domain.EventData{
+				Name:        evnt.Name,
+				Description: evnt.Description,
+				Start:       evnt.StartTime,
+				End:         evnt.EndTime,
+				Weapon:      evnt.Weapon,
+				Type:        evnt.Type,
+				Gender:      evnt.Gender,
+				Category:    evnt.Category,
+			},
+		})
+	}
+	return events, nil
 }

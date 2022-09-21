@@ -53,16 +53,26 @@ func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*dom
 	}
 	var evntData []*domain.EventData
 	for _, evnt := range input.Events {
-		evntData = append(evntData, &domain.EventData{
-			Name:        evnt.Name,
-			Description: evnt.Description,
-			Start:       time.Unix(evnt.Start, 0),
-			End:         time.Unix(evnt.End, 0),
-			Weapon:      string(evnt.Details.Weapon),
-			Type:        string(evnt.Details.Type),
-			Gender:      string(evnt.Details.Gender),
-			Category:    string(evnt.Details.Category),
-		})
+		event, err := gim.MapEvent(*evnt)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		evntData = append(evntData, event)
 	}
 	return &tournmtData, evntData, nil
+}
+
+func (gim GqlInputMapper) MapEvent(input model.CreateEventInput) (*domain.EventData, error) {
+	mappedEvent := &domain.EventData{
+		Name:        input.Name,
+		Description: input.Description,
+		Start:       time.Unix(input.Start, 0),
+		End:         time.Unix(input.End, 0),
+		Weapon:      string(input.Details.Weapon),
+		Type:        string(input.Details.Type),
+		Gender:      string(input.Details.Gender),
+		Category:    string(input.Details.Category),
+	}
+	return mappedEvent, nil
 }

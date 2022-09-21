@@ -55,3 +55,32 @@ func (gm GqlMapper) MapTournament(tournament *domain.Tournament) (*model.Tournam
 	}
 	return mappedTournament, nil
 }
+
+func (gm GqlMapper) MapEvent(event *domain.Event) (*model.Event, error) {
+	mappedEvent := &model.Event{
+		ID:           strconv.Itoa(int(event.ID)),
+		Start:        int64(event.Start.Unix()),
+		End:          int64(event.End.Unix()),
+		Description:  event.Description,
+		TournamentID: strconv.Itoa(int(event.TournamentId)),
+		Details: &model.EventDetails{
+			Weapon:   model.EventWeapon(event.Weapon),
+			Type:     model.EventType(event.Type),
+			Gender:   model.EventGenderMix(event.Gender),
+			Category: model.EventAgeCategory(event.Category),
+		},
+	}
+	return mappedEvent, nil
+}
+
+func (gm GqlMapper) MapEventArray(events []*domain.Event) ([]*model.Event, error) {
+	var mappedEventArray []*model.Event
+	for _, evnt := range events {
+		mappedEvent, err := gm.MapEvent(evnt)
+		if err != nil {
+			return nil, err
+		}
+		mappedEventArray = append(mappedEventArray, mappedEvent)
+	}
+	return mappedEventArray, nil
+}

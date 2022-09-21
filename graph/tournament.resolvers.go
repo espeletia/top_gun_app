@@ -6,9 +6,9 @@ package graph
 import (
 	"FenceLive/graph/generated"
 	"FenceLive/graph/model"
-	"FenceLive/internal/domain"
 	"context"
 	"fmt"
+	"strconv"
 )
 
 func (r *mutationResolver) CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error) {
@@ -20,15 +20,14 @@ func (r *mutationResolver) CreateTournament(ctx context.Context, input model.Cre
 	if err != nil {
 		return nil, err
 	}
-	var events []*domain.Event
 	for _, event := range eventInput {
-		event, err := r.Events.CreateEvent(ctx, *event, tournament.Id)
+		_, err := r.Events.CreateEvent(ctx, *event, tournament.Id)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, event)
 	}
-	return 
+
+	return r.Mapper.MapTournament(tournament)
 }
 
 func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournament, error) {
@@ -40,7 +39,15 @@ func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (
 }
 
 func (r *tournamentResolver) Events(ctx context.Context, obj *model.Tournament) ([]*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	tournamentId, err := strconv.Atoi(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	events, err := r.Resolver.Events.GetByTournamentId(ctx, int64(tournamentId))
+	if err != nil {
+		return nil, err
+	}
+	return r.Resolver.Mapper.MapEventArray(events)
 }
 
 // Tournament returns generated.TournamentResolver implementation.

@@ -5,8 +5,9 @@ import (
 )
 
 type Event struct {
-	ID     int64
-	Status string
+	ID           int64
+	Status       string
+	TournamentId int64
 	EventData
 }
 
