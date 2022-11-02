@@ -43,7 +43,9 @@ func run() error {
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graph.Resolver{
+			Tournaments: usecases.NewTournamentUsecase(database.NewTournamentDatabaseStore(dbConn)),
 			Users:       usecases.NewUserUsecase(database.NewUserDatabaseStore(dbConn)),
+			Events:      usecases.NewEventUsecase(database.NewEventDatabaseStore(dbConn)),
 			Mapper:      graph.NweGqlMapper(),
 			InputMapper: graph.NewInputMapper(),
 		},

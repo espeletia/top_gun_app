@@ -6,8 +6,8 @@ import (
 	"context"
 )
 
-func NewUserUsecase(usi database.UserStoreInterface) *UserUsecase {
-	return &UserUsecase{
+func NewUserUsecase(usi database.UserStoreInterface) UserUsecase {
+	return UserUsecase{
 		store: usi,
 	}
 }

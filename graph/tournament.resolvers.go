@@ -16,17 +16,18 @@ func (r *mutationResolver) CreateTournament(ctx context.Context, input model.Cre
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("Saul goodman %v\n", *tournamentInput)
 	tournament, err := r.Tournaments.CreateTournament(ctx, *tournamentInput)
 	if err != nil {
 		return nil, err
 	}
 	for _, event := range eventInput {
+		fmt.Printf("Splendid %v\n", tournament.Id)
 		_, err := r.Events.CreateEvent(ctx, *event, tournament.Id)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return r.Mapper.MapTournament(tournament)
 }
 

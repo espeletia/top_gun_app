@@ -1112,7 +1112,6 @@ type EventDetails {
 input CreateEventInput{
   Name: String!
   Description: String
-  TournamentId: ID!
   RefereeIds: [ID!]! 
   AthleteIds: [AthleteSeedingInput!]!
   start: Int!
@@ -8384,14 +8383,6 @@ func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
 			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "TournamentId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TournamentId"))
-			it.TournamentID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

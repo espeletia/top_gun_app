@@ -33,14 +33,13 @@ type Club struct {
 }
 
 type CreateEventInput struct {
-	Name         string                 `json:"Name"`
-	Description  *string                `json:"Description"`
-	TournamentID string                 `json:"TournamentId"`
-	RefereeIds   []string               `json:"RefereeIds"`
-	AthleteIds   []*AthleteSeedingInput `json:"AthleteIds"`
-	Start        int64                  `json:"start"`
-	End          int64                  `json:"end"`
-	Details      *DetailsInput          `json:"Details"`
+	Name        string                 `json:"Name"`
+	Description *string                `json:"Description"`
+	RefereeIds  []string               `json:"RefereeIds"`
+	AthleteIds  []*AthleteSeedingInput `json:"AthleteIds"`
+	Start       int64                  `json:"start"`
+	End         int64                  `json:"end"`
+	Details     *DetailsInput          `json:"Details"`
 }
 
 type CreateMatchInput struct {

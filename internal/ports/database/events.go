@@ -15,14 +15,14 @@ type EventStoreInterface interface {
 	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
 }
 
-type EventDatabaseStore struct {
-	DB *sql.DB
-}
-
-func NewEventDatabaseStore(db *sql.DB) EventDatabaseStore {
-	return EventDatabaseStore{
+func NewEventDatabaseStore(db *sql.DB) *EventDatabaseStore {
+	return &EventDatabaseStore{
 		DB: db,
 	}
+}
+
+type EventDatabaseStore struct {
+	DB *sql.DB
 }
 
 func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error) {
