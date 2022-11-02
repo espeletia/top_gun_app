@@ -60,48 +60,54 @@ func (tdbs TournamentDatabaseStore) CreateTournament(ctx context.Context, TournD
 		return nil, err
 	}
 
-	stored := &domain.Tournament{
-		Id:     int64(dest.ID),
-		Status: dest.Status,
-		TournamentData: domain.TournamentData{
-			Start:       dest.StartTime,
-			End:         dest.EndTime,
-			Name:        dest.Name,
-			City:        dest.City,
-			Country:     dest.Country,
-			OwnerId:     int64(dest.OwnerID),
-			Description: dest.Description,
-		},
-	}
-	fmt.Printf("we cool %f, %s, %f\n", *dest.Lat, *dest.Address, *dest.Lon)
-	fmt.Printf("we cool %p, %p, %p\n", dest.Lat, dest.Address, dest.Lon)
+	// stored := &domain.Tournament{
+	// 	Id:     int64(dest.ID),
+	// 	Status: dest.Status,
+	// 	TournamentData: domain.TournamentData{
+	// 		Start:       dest.StartTime,
+	// 		End:         dest.EndTime,
+	// 		Name:        dest.Name,
+	// 		City:        dest.City,
+	// 		Country:     dest.Country,
+	// 		OwnerId:     int64(dest.OwnerID),
+	// 		Description: dest.Description,
+	// 	},
+	// }
+	// fmt.Printf("we cool %f, %s, %f\n", *dest.Lat, *dest.Address, *dest.Lon)
+	// fmt.Printf("we cool %p, %p, %p\n", dest.Lat, dest.Address, dest.Lon)
 
-	if dest.Lat != nil {
-		fmt.Printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n")
-		stored.Location = &domain.Location{
-			Lon:     *dest.Lon,
-			Lat:     *dest.Lat,
-			Address: *dest.Address,
-		}
-	}
-	fmt.Printf("we cooled\n")
-	return stored, nil
+	// if dest.Lat != nil {
+	// 	fmt.Printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n")
+	// 	stored.Location = &domain.Location{
+	// 		Lon:     *dest.Lon,
+	// 		Lat:     *dest.Lat,
+	// 		Address: *dest.Address,
+	// 	}
+	// }
+	// fmt.Printf("we cooled\n")
+	return mapDBTournament(dest.Tournaments), nil
 }
 
 func mapDBTournament(tournament model.Tournaments) *domain.Tournament {
 	var loc *domain.Location
 	if tournament.Lat != nil {
 		loc = &domain.Location{
-			Lon: *tournament.Lon,
-			Lat: *tournament.Lat,
+			Lon:     *tournament.Lon,
+			Lat:     *tournament.Lat,
 			Address: *tournament.Address,
 		}
 	}
 	return &domain.Tournament{
-		Id: int64(tournament.ID),
+		Id:     int64(tournament.ID),
 		Status: tournament.Status,
 		TournamentData: domain.TournamentData{
-			
+			Start:       tournament.StartTime,
+			End:         tournament.EndTime,
+			Name:        tournament.Name,
+			Description: tournament.Description,
+			Country:     tournament.Country,
+			OwnerId:     int64(tournament.OwnerID),
+			Location:    loc,
 		},
 	}
 }
