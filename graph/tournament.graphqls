@@ -39,6 +39,17 @@ input CreateTournamentInput{
   Description: String
 }
 
+input UpdateTournamentInput{
+  start: Int!
+  end: Int!
+  Location: LocationInput
+  name: String!
+  City: String!
+  Country: String!
+  Description: String
+  OwnerId: ID!
+}
+
 input LocationInput{
   Lat: Float!
   Lon: Float!
@@ -47,9 +58,10 @@ input LocationInput{
 
 extend type Query {
   getAllTournaments: [Tournament!]!
-
+  getTournamentById(Id: ID!): Tournament!
 }
 
 extend type Mutation {
   CreateTournament(input: CreateTournamentInput!): Tournament!
+  UpdateTournament(Id: ID!, input: UpdateTournamentInput!): Tournament!
 }

@@ -14,10 +14,10 @@ func NewInputMapper() *GqlInputMapper {
 type GqlInputMapper struct {
 }
 
-func (gim GqlInputMapper) MapUser(input model.CreateUserInput) (*domain.UserData, error) {
+func (gim GqlInputMapper) MapUser(input model.CreateUserInput) domain.UserData {
 	dateString := input.BornIn
-	date, error := time.Parse("2006-01-02", dateString)
-	userData := &domain.UserData{
+	date, _ := time.Parse("2006-01-02", dateString)
+	userData := domain.UserData{
 		Email:       input.Email,
 		Username:    input.UserName,
 		FirstName:   input.FirstName,
@@ -26,7 +26,7 @@ func (gim GqlInputMapper) MapUser(input model.CreateUserInput) (*domain.UserData
 		Nationality: input.Nationality,
 		BornIn:      date,
 	}
-	return userData, error
+	return userData
 }
 
 func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*domain.TournamentData, []*domain.EventData, error) {
@@ -75,4 +75,29 @@ func (gim GqlInputMapper) MapEvent(input model.CreateEventInput) (*domain.EventD
 		Category:    string(input.Details.Category),
 	}
 	return mappedEvent, nil
+}
+
+func (gim GqlInputMapper) MapTournamentUpdate(input model.UpdateTournamentInput) (*domain.TournamentData, error) {
+	ownId, err := strconv.Atoi(input.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	tournmtData := domain.TournamentData{
+		Start:       time.Unix(input.Start, 0),
+		End:         time.Unix(input.End, 0),
+		Name:        input.Name,
+		Location:    nil,
+		City:        input.City,
+		Country:     input.Country,
+		OwnerId:     int64(ownId),
+		Description: input.Description,
+	}
+	if input.Location != nil {
+		tournmtData.Location = &domain.Location{
+			Lon:     input.Location.Lon,
+			Lat:     input.Location.Lat,
+			Address: input.Location.Address,
+		}
+	}
+	return &tournmtData, nil
 }

@@ -2,6 +2,8 @@ package domain
 
 import "time"
 
+const TournamentStatusCreated = "CREATED"
+
 type Tournament struct {
 	Id     int64
 	Status string
@@ -24,3 +26,4 @@ type Location struct {
 	Lon     float64
 	Address string
 }
+

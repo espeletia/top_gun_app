@@ -119,6 +119,7 @@ type ComplexityRoot struct {
 		CreateEvent      func(childComplexity int, tournamentID string, input model.CreateEventInput) int
 		CreateTournament func(childComplexity int, input model.CreateTournamentInput) int
 		CreateUser       func(childComplexity int, input model.CreateUserInput) int
+		UpdateTournament func(childComplexity int, id string, input model.UpdateTournamentInput) int
 	}
 
 	Poole struct {
@@ -137,6 +138,7 @@ type ComplexityRoot struct {
 		GetAllTournaments func(childComplexity int) int
 		GetAllUsers       func(childComplexity int) int
 		GetEvent          func(childComplexity int, eventID string) int
+		GetTournamentByID func(childComplexity int, id string) int
 		GetUserByID       func(childComplexity int, userID string) int
 	}
 
@@ -211,6 +213,7 @@ type MatchResolver interface {
 type MutationResolver interface {
 	CreateEvent(ctx context.Context, tournamentID string, input model.CreateEventInput) (*model.Event, error)
 	CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error)
+	UpdateTournament(ctx context.Context, id string, input model.UpdateTournamentInput) (*model.Tournament, error)
 	CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error)
 }
 type PooleResolver interface {
@@ -223,6 +226,7 @@ type PooleResolver interface {
 type QueryResolver interface {
 	GetEvent(ctx context.Context, eventID string) (*model.Event, error)
 	GetAllTournaments(ctx context.Context) ([]*model.Tournament, error)
+	GetTournamentByID(ctx context.Context, id string) (*model.Tournament, error)
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
 	GetUserByID(ctx context.Context, userID string) (*model.User, error)
 }
@@ -609,6 +613,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.CreateUserInput)), true
 
+	case "Mutation.UpdateTournament":
+		if e.complexity.Mutation.UpdateTournament == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateTournament_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTournament(childComplexity, args["Id"].(string), args["input"].(model.UpdateTournamentInput)), true
+
 	case "Poole.AthleteIds":
 		if e.complexity.Poole.AthleteIds == nil {
 			break
@@ -697,6 +713,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetEvent(childComplexity, args["EventId"].(string)), true
+
+	case "Query.getTournamentById":
+		if e.complexity.Query.GetTournamentByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getTournamentById_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetTournamentByID(childComplexity, args["Id"].(string)), true
 
 	case "Query.getUserByID":
 		if e.complexity.Query.GetUserByID == nil {
@@ -956,6 +984,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputDetailsInput,
 		ec.unmarshalInputLocationInput,
+		ec.unmarshalInputUpdateTournamentInput,
 	)
 	first := true
 
@@ -1233,6 +1262,17 @@ input CreateTournamentInput{
   Description: String
 }
 
+input UpdateTournamentInput{
+  start: Int!
+  end: Int!
+  Location: LocationInput
+  name: String!
+  City: String!
+  Country: String!
+  Description: String
+  OwnerId: ID!
+}
+
 input LocationInput{
   Lat: Float!
   Lon: Float!
@@ -1241,11 +1281,12 @@ input LocationInput{
 
 extend type Query {
   getAllTournaments: [Tournament!]!
-
+  getTournamentById(Id: ID!): Tournament!
 }
 
 extend type Mutation {
   CreateTournament(input: CreateTournamentInput!): Tournament!
+  UpdateTournament(Id: ID!, input: UpdateTournamentInput!): Tournament!
 }`, BuiltIn: false},
 	{Name: "../user.graphqls", Input: `enum GlobalRoles {
   ADMIN
@@ -1356,6 +1397,30 @@ func (ec *executionContext) field_Mutation_CreateUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_UpdateTournament_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	var arg1 model.UpdateTournamentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateTournamentInput2FenceLiveᚋgraphᚋmodelᚐUpdateTournamentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_GetEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1383,6 +1448,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getTournamentById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["Id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
 	return args, nil
 }
 
@@ -3889,6 +3969,87 @@ func (ec *executionContext) fieldContext_Mutation_CreateTournament(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_UpdateTournament(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateTournament(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTournament(rctx, fc.Args["Id"].(string), fc.Args["input"].(model.UpdateTournamentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Tournament)
+	fc.Result = res
+	return ec.marshalNTournament2ᚖFenceLiveᚋgraphᚋmodelᚐTournament(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateTournament(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
+			case "start":
+				return ec.fieldContext_Tournament_start(ctx, field)
+			case "end":
+				return ec.fieldContext_Tournament_end(ctx, field)
+			case "name":
+				return ec.fieldContext_Tournament_name(ctx, field)
+			case "Location":
+				return ec.fieldContext_Tournament_Location(ctx, field)
+			case "City":
+				return ec.fieldContext_Tournament_City(ctx, field)
+			case "Country":
+				return ec.fieldContext_Tournament_Country(ctx, field)
+			case "OwnerId":
+				return ec.fieldContext_Tournament_OwnerId(ctx, field)
+			case "Owner":
+				return ec.fieldContext_Tournament_Owner(ctx, field)
+			case "Events":
+				return ec.fieldContext_Tournament_Events(ctx, field)
+			case "Status":
+				return ec.fieldContext_Tournament_Status(ctx, field)
+			case "Description":
+				return ec.fieldContext_Tournament_Description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Tournament", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateTournament_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_CreateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_CreateUser(ctx, field)
 	if err != nil {
@@ -4611,6 +4772,87 @@ func (ec *executionContext) fieldContext_Query_getAllTournaments(ctx context.Con
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tournament", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getTournamentById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getTournamentById(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetTournamentByID(rctx, fc.Args["Id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Tournament)
+	fc.Result = res
+	return ec.marshalNTournament2ᚖFenceLiveᚋgraphᚋmodelᚐTournament(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getTournamentById(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Tournament_Id(ctx, field)
+			case "start":
+				return ec.fieldContext_Tournament_start(ctx, field)
+			case "end":
+				return ec.fieldContext_Tournament_end(ctx, field)
+			case "name":
+				return ec.fieldContext_Tournament_name(ctx, field)
+			case "Location":
+				return ec.fieldContext_Tournament_Location(ctx, field)
+			case "City":
+				return ec.fieldContext_Tournament_City(ctx, field)
+			case "Country":
+				return ec.fieldContext_Tournament_Country(ctx, field)
+			case "OwnerId":
+				return ec.fieldContext_Tournament_OwnerId(ctx, field)
+			case "Owner":
+				return ec.fieldContext_Tournament_Owner(ctx, field)
+			case "Events":
+				return ec.fieldContext_Tournament_Events(ctx, field)
+			case "Status":
+				return ec.fieldContext_Tournament_Status(ctx, field)
+			case "Description":
+				return ec.fieldContext_Tournament_Description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Tournament", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getTournamentById_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -8699,6 +8941,85 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTournamentInput(ctx context.Context, obj interface{}) (model.UpdateTournamentInput, error) {
+	var it model.UpdateTournamentInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			it.Start, err = ec.unmarshalNInt2int64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
+			it.End, err = ec.unmarshalNInt2int64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Location":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Location"))
+			it.Location, err = ec.unmarshalOLocationInput2ᚖFenceLiveᚋgraphᚋmodelᚐLocationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "City":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("City"))
+			it.City, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Country":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Country"))
+			it.Country, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "OwnerId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("OwnerId"))
+			it.OwnerID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -9316,6 +9637,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "UpdateTournament":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateTournament(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "CreateUser":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -9511,6 +9841,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAllTournaments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getTournamentById":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getTournamentById(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10855,6 +11208,11 @@ func (ec *executionContext) unmarshalNTournamentStatus2FenceLiveᚋgraphᚋmodel
 
 func (ec *executionContext) marshalNTournamentStatus2FenceLiveᚋgraphᚋmodelᚐTournamentStatus(ctx context.Context, sel ast.SelectionSet, v model.TournamentStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNUpdateTournamentInput2FenceLiveᚋgraphᚋmodelᚐUpdateTournamentInput(ctx context.Context, v interface{}) (model.UpdateTournamentInput, error) {
+	res, err := ec.unmarshalInputUpdateTournamentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUser2FenceLiveᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {

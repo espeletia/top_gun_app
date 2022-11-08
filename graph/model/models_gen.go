@@ -161,6 +161,17 @@ type Tournament struct {
 	Description *string          `json:"Description"`
 }
 
+type UpdateTournamentInput struct {
+	Start       int64          `json:"start"`
+	End         int64          `json:"end"`
+	Location    *LocationInput `json:"Location"`
+	Name        string         `json:"name"`
+	City        string         `json:"City"`
+	Country     string         `json:"Country"`
+	Description *string        `json:"Description"`
+	OwnerID     string         `json:"OwnerId"`
+}
+
 type User struct {
 	ID                          string        `json:"Id"`
 	Email                       string        `json:"Email"`

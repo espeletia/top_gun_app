@@ -64,7 +64,6 @@ func serve(mux *mux.Router, config *config.Config) error {
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
-	sugar.Info("logger works now")
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 

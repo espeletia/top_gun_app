@@ -7,7 +7,6 @@ import (
 	"FenceLive/graph/generated"
 	"FenceLive/graph/model"
 	"context"
-	"fmt"
 	"strconv"
 )
 
@@ -16,13 +15,11 @@ func (r *mutationResolver) CreateTournament(ctx context.Context, input model.Cre
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Saul goodman %v\n", *tournamentInput)
 	tournament, err := r.Tournaments.CreateTournament(ctx, *tournamentInput)
 	if err != nil {
 		return nil, err
 	}
 	for _, event := range eventInput {
-		fmt.Printf("Splendid %v\n", tournament.Id)
 		_, err := r.Events.CreateEvent(ctx, *event, tournament.Id)
 		if err != nil {
 			return nil, err
@@ -31,12 +28,52 @@ func (r *mutationResolver) CreateTournament(ctx context.Context, input model.Cre
 	return r.Mapper.MapTournament(tournament)
 }
 
+func (r *mutationResolver) UpdateTournament(ctx context.Context, id string, input model.UpdateTournamentInput) (*model.Tournament, error) {
+	tournamentId, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, err
+	}
+	tournamentUpdateMapped, err := r.InputMapper.MapTournamentUpdate(input)
+	if err != nil {
+		return nil, err
+	}
+	tournament, err := r.Tournaments.UpdateTournamentData(ctx, int64(tournamentId), *tournamentUpdateMapped)
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapTournament(tournament)
+}
+
 func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournament, error) {
-	panic(fmt.Errorf("not implemented"))
+	tournaments, err := r.Tournaments.GetAllTournaments(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapTournamentArray(tournaments)
+}
+
+func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*model.Tournament, error) {
+	tournamentId, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, err
+	}
+	tournament, err := r.Tournaments.GetByTournamentId(ctx, int64(tournamentId))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapTournament(tournament)
 }
 
 func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	ownerID, err := strconv.Atoi(obj.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	owner, err := r.Users.GetUserById(ctx, int64(ownerID))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapUser(owner)
 }
 
 func (r *tournamentResolver) Events(ctx context.Context, obj *model.Tournament) ([]*model.Event, error) {

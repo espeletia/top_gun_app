@@ -6,11 +6,15 @@ import (
 	"FenceLive/internal/ports/database/gen/FenceLive/public/table"
 	"context"
 	"database/sql"
-	"fmt"
+
+	"github.com/go-jet/jet/v2/postgres"
 )
 
 type TournamentStoreInterface interface {
 	CreateTournament(ctx context.Context, TournData domain.TournamentData) (*domain.Tournament, error)
+	GetByTournamentId(ctx context.Context, id int64) (*domain.Tournament, error)
+	GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error)
+	UpdateTournamentData(ctx context.Context, tournamentId int64, tournamentData domain.TournamentData) (*domain.Tournament, error)
 }
 
 func NewTournamentDatabaseStore(db *sql.DB) *TournamentDatabaseStore {
@@ -24,13 +28,12 @@ type TournamentDatabaseStore struct {
 }
 
 func (tdbs TournamentDatabaseStore) CreateTournament(ctx context.Context, TournData domain.TournamentData) (*domain.Tournament, error) {
-	fmt.Printf("??????????????//\n")
 	modelTourn := model.Tournaments{
 		StartTime:   TournData.Start,
 		EndTime:     TournData.End,
 		Name:        TournData.Name,
 		City:        TournData.City,
-		Status:      "CREATED",
+		Status:      domain.TournamentStatusCreated,
 		OwnerID:     int32(TournData.OwnerId),
 		Country:     TournData.Country,
 		Description: TournData.Description,
@@ -42,50 +45,81 @@ func (tdbs TournamentDatabaseStore) CreateTournament(ctx context.Context, TournD
 		modelTourn.Address = &TournData.Location.Address
 	}
 
-	fmt.Printf("we cool?\n")
-
 	stmt := table.Tournaments.INSERT(table.Tournaments.StartTime, table.Tournaments.EndTime, table.Tournaments.Name, table.Tournaments.Lat, table.Tournaments.Lon, table.Tournaments.Address, table.Tournaments.City, table.Tournaments.Country, table.Tournaments.OwnerID, table.Events.Description, table.Tournaments.Status).
 		MODEL(modelTourn).
 		RETURNING(table.Tournaments.AllColumns)
-	fmt.Printf("we cool\n")
 
 	var dest struct {
 		model.Tournaments
 	}
 
 	err := stmt.Query(tdbs.DB, &dest)
-	fmt.Printf("we cool %v\n", dest)
 
 	if err != nil {
 		return nil, err
 	}
-
-	// stored := &domain.Tournament{
-	// 	Id:     int64(dest.ID),
-	// 	Status: dest.Status,
-	// 	TournamentData: domain.TournamentData{
-	// 		Start:       dest.StartTime,
-	// 		End:         dest.EndTime,
-	// 		Name:        dest.Name,
-	// 		City:        dest.City,
-	// 		Country:     dest.Country,
-	// 		OwnerId:     int64(dest.OwnerID),
-	// 		Description: dest.Description,
-	// 	},
-	// }
-	// fmt.Printf("we cool %f, %s, %f\n", *dest.Lat, *dest.Address, *dest.Lon)
-	// fmt.Printf("we cool %p, %p, %p\n", dest.Lat, dest.Address, dest.Lon)
-
-	// if dest.Lat != nil {
-	// 	fmt.Printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n")
-	// 	stored.Location = &domain.Location{
-	// 		Lon:     *dest.Lon,
-	// 		Lat:     *dest.Lat,
-	// 		Address: *dest.Address,
-	// 	}
-	// }
-	// fmt.Printf("we cooled\n")
 	return mapDBTournament(dest.Tournaments), nil
+}
+
+func (tdbs TournamentDatabaseStore) UpdateTournamentData(ctx context.Context, tournamentID int64, TournData domain.TournamentData) (*domain.Tournament, error) {
+	modelTourn := model.Tournaments{
+		StartTime:   TournData.Start,
+		EndTime:     TournData.End,
+		Name:        TournData.Name,
+		City:        TournData.City,
+		OwnerID:     int32(TournData.OwnerId),
+		Country:     TournData.Country,
+		Description: TournData.Description,
+	}
+
+	stmt := table.Tournaments.UPDATE(table.Tournaments.StartTime, table.Tournaments.EndTime, table.Tournaments.Name, table.Tournaments.City, table.Tournaments.OwnerID, table.Tournaments.Country, table.Tournaments.Description).
+		MODEL(modelTourn).WHERE(table.Tournaments.ID.EQ(postgres.Int(tournamentID))).RETURNING(table.Tournaments.AllColumns)
+
+	var dest struct {
+		model.Tournaments
+	}
+
+	err := stmt.Query(tdbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapDBTournament(dest.Tournaments), nil
+}
+
+func (tdbs TournamentDatabaseStore) GetByTournamentId(ctx context.Context, id int64) (*domain.Tournament, error) {
+	stmt := table.Tournaments.SELECT(table.Tournaments.AllColumns).WHERE(table.Tournaments.ID.EQ(postgres.Int(id)))
+
+	var dest struct {
+		model.Tournaments
+	}
+
+	err := stmt.Query(tdbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapDBTournament(dest.Tournaments), nil
+}
+
+func (tdbs TournamentDatabaseStore) GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error) {
+	stmt := table.Tournaments.SELECT(table.Tournaments.AllColumns)
+
+	var dest []struct {
+		model.Tournaments
+	}
+
+	err := stmt.Query(tdbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	var tournaments []*domain.Tournament
+	for _, tournament := range dest {
+		tournaments = append(tournaments, mapDBTournament(tournament.Tournaments))
+	}
+
+	return tournaments, nil
 }
 
 func mapDBTournament(tournament model.Tournaments) *domain.Tournament {
@@ -106,6 +140,7 @@ func mapDBTournament(tournament model.Tournaments) *domain.Tournament {
 			Name:        tournament.Name,
 			Description: tournament.Description,
 			Country:     tournament.Country,
+			City:        tournament.City,
 			OwnerId:     int64(tournament.OwnerID),
 			Location:    loc,
 		},

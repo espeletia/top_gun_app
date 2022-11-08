@@ -11,9 +11,9 @@ import (
 )
 
 type UserStoreInterface interface {
-	CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error)
+	CreateUser(ctx context.Context, user domain.UserData) (*domain.User, error)
 	GetAllUsers(ctx context.Context) ([]*domain.User, error)
-	GetUser(ctx context.Context, id int64) (*domain.User, error)
+	GetUserById(ctx context.Context, id int64) (*domain.User, error)
 	//GetUserByEmail(email string) (*User, error)
 	//GetUserByUsername(username string) (*User, error)
 	//GetUsers() ([]*User, error)
@@ -31,7 +31,7 @@ type UserDatabaseStore struct {
 	DB *sql.DB
 }
 
-func (udbs UserDatabaseStore) CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error) {
+func (udbs UserDatabaseStore) CreateUser(ctx context.Context, user domain.UserData) (*domain.User, error) {
 
 	modelUser := model.Users{
 		Email:       user.Email,
@@ -100,7 +100,7 @@ func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, 
 	return users, nil
 }
 
-func (udbs UserDatabaseStore) GetUser(ctx context.Context, id int64) (*domain.User, error) {
+func (udbs UserDatabaseStore) GetUserById(ctx context.Context, id int64) (*domain.User, error) {
 	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.ID.EQ(postgres.Int(id)))
 
 	var dest []struct {

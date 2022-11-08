@@ -16,7 +16,7 @@ type UserUsecase struct {
 	store database.UserStoreInterface
 }
 
-func (uu UserUsecase) CreateUser(ctx context.Context, user *domain.UserData) (*domain.User, error) {
+func (uu UserUsecase) CreateUser(ctx context.Context, user domain.UserData) (*domain.User, error) {
 	stored, err := uu.store.CreateUser(ctx, user)
 	return stored, err
 }
@@ -26,6 +26,6 @@ func (uu UserUsecase) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
 	return users, err
 }
 
-func (uu UserUsecase) GetUser(ctx context.Context, Id int64) (*domain.User, error) {
-	return uu.store.GetUser(ctx, Id)
+func (uu UserUsecase) GetUserById(ctx context.Context, Id int64) (*domain.User, error) {
+	return uu.store.GetUserById(ctx, Id)
 }
