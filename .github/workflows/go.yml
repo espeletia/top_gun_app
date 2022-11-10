@@ -38,6 +38,5 @@ jobs:
 
       - name: run tests
         run: |
-          cd internal 
           go test -v ./...
            
