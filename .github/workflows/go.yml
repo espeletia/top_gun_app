@@ -30,7 +30,7 @@ jobs:
         
       - name: apply migrations
         run: |
-        cd migrations
+        cd migrations/
         go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable' up
 
       - name: jet generate
