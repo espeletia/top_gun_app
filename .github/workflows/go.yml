@@ -37,5 +37,7 @@ jobs:
         run: go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=./internal/ports/database/gen
 
       - name: run tests
-        run: go test -v ./...
+        run: |
+          cd internal 
+          go test -v ./...
            
