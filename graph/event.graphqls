@@ -84,7 +84,6 @@ type EventDetails {
 input CreateEventInput{
   Name: String!
   Description: String
-  TournamentId: ID!
   RefereeIds: [ID!]! 
   AthleteIds: [AthleteSeedingInput!]!
   start: Int!

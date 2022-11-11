@@ -2,15 +2,12 @@ package database
 
 import (
 	"FenceLive/internal/domain"
-	_ "FenceLive/migrations"
 	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"testing"
 	"time"
-
-	_ "FenceLive/migrations"
 
 	"github.com/docker/go-connections/nat"
 	_ "github.com/lib/pq"
@@ -29,7 +26,7 @@ func createDockerUserStore(t *testing.T, ctx context.Context) (*UserDatabaseStor
 			"POSTGRES_DB":       "FenceLive",
 			"listen_addresses":  "'*'",
 		},
-		WaitingFor: wait.ForSQL(nat.Port("5432"), "postgres", func(p nat.Port) string {
+		WaitingFor: wait.ForSQL(nat.Port("5432"), "postgres", func(host string, p nat.Port) string {
 			return fmt.Sprintf("postgres://test:test@localhost:%v/FenceLive?sslmode=disable", p.Port())
 		}),
 	}
@@ -149,26 +146,26 @@ func TestUserDatabaseStore_Create(t *testing.T) {
 	ctx := context.Background()
 	users, cleanup, err := createDockerUserStore(t, ctx)
 	if err != nil {
-		t.Errorf("SpotDatabaseStore.Create() error = %v", err)
+		t.Errorf("UserDatabaseStore.Create() error = %v", err)
 		return
 	}
 	t.Cleanup(cleanup)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := users.CreateUser(ctx, &tt.args.data)
+			got, err := users.CreateUser(ctx, tt.args.data)
 			if err != nil {
 				if !tt.WantErr {
 					t.Errorf("Got an unwanted error: %s", err)
 				}
 			}
 			if !tt.WantErr {
-				AssertEqualUser(t, tt.want, *got)
+				assertEqualUser(t, tt.want, *got)
 			}
 		})
 	}
 }
 
-func AssertEqualUser(t testing.TB, want, got domain.User) {
+func assertEqualUser(t testing.TB, want, got domain.User) {
 	t.Helper()
 	if want.BornIn.Unix() != got.BornIn.Unix() {
 		t.Errorf("Got: %s, Wanted: %s", got.BornIn, want.BornIn)
@@ -180,7 +177,7 @@ func AssertEqualUser(t testing.TB, want, got domain.User) {
 		t.Errorf("Got: %s, Wanted: %s", got.Email, want.Email)
 	}
 	if want.FirstName != got.FirstName {
-		t.Errorf("Got: %s, Wanted: %s", got.FirstName, want.Email)
+		t.Errorf("Got: %s, Wanted: %s", got.FirstName, want.FirstName)
 	}
 	if want.LastName != got.LastName {
 		t.Errorf("Got: %s, Wanted: %s", got.LastName, want.LastName)

@@ -12,10 +12,7 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	userData, err := r.InputMapper.MapUser(input)
-	if err != nil {
-		return nil, err
-	}
+	userData := r.InputMapper.MapUser(input)
 	user, err := r.Users.CreateUser(ctx, userData)
 	if err != nil {
 		return nil, err
@@ -40,7 +37,7 @@ func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.
 	if err != nil {
 		return nil, err
 	}
-	user, err := r.Users.GetUser(ctx, int64(Id))
+	user, err := r.Users.GetUserById(ctx, int64(Id))
 	if err != nil {
 		return nil, err
 	}

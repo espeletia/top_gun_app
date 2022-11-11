@@ -43,7 +43,9 @@ func run() error {
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graph.Resolver{
+			Tournaments: usecases.NewTournamentUsecase(database.NewTournamentDatabaseStore(dbConn)),
 			Users:       usecases.NewUserUsecase(database.NewUserDatabaseStore(dbConn)),
+			Events:      usecases.NewEventUsecase(database.NewEventDatabaseStore(dbConn)),
 			Mapper:      graph.NweGqlMapper(),
 			InputMapper: graph.NewInputMapper(),
 		},
@@ -62,7 +64,6 @@ func serve(mux *mux.Router, config *config.Config) error {
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
-	sugar.Info("logger works now")
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 

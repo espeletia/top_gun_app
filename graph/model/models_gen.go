@@ -33,14 +33,13 @@ type Club struct {
 }
 
 type CreateEventInput struct {
-	Name         string                 `json:"Name"`
-	Description  *string                `json:"Description"`
-	TournamentID string                 `json:"TournamentId"`
-	RefereeIds   []string               `json:"RefereeIds"`
-	AthleteIds   []*AthleteSeedingInput `json:"AthleteIds"`
-	Start        int64                  `json:"start"`
-	End          int64                  `json:"end"`
-	Details      *DetailsInput          `json:"Details"`
+	Name        string                 `json:"Name"`
+	Description *string                `json:"Description"`
+	RefereeIds  []string               `json:"RefereeIds"`
+	AthleteIds  []*AthleteSeedingInput `json:"AthleteIds"`
+	Start       int64                  `json:"start"`
+	End         int64                  `json:"end"`
+	Details     *DetailsInput          `json:"Details"`
 }
 
 type CreateMatchInput struct {
@@ -103,13 +102,13 @@ type EventDetails struct {
 
 type Location struct {
 	Lat     float64 `json:"Lat"`
-	Long    float64 `json:"Long"`
+	Lon     float64 `json:"Lon"`
 	Address string  `json:"Address"`
 }
 
 type LocationInput struct {
 	Lat     float64 `json:"Lat"`
-	Long    float64 `json:"Long"`
+	Lon     float64 `json:"Lon"`
 	Address string  `json:"Address"`
 }
 
@@ -160,6 +159,17 @@ type Tournament struct {
 	Events      []*Event         `json:"Events"`
 	Status      TournamentStatus `json:"Status"`
 	Description *string          `json:"Description"`
+}
+
+type UpdateTournamentInput struct {
+	Start       int64          `json:"start"`
+	End         int64          `json:"end"`
+	Location    *LocationInput `json:"Location"`
+	Name        string         `json:"name"`
+	City        string         `json:"City"`
+	Country     string         `json:"Country"`
+	Description *string        `json:"Description"`
+	OwnerID     string         `json:"OwnerId"`
 }
 
 type User struct {
