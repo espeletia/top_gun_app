@@ -25,7 +25,7 @@ func createDockerTournamentStore(t *testing.T, ctx context.Context) (*UserDataba
 			"POSTGRES_DB":       "FenceLive",
 			"listen_addresses":  "'*'",
 		},
-		WaitingFor: wait.ForSQL(nat.Port("5432"), "postgres", func(p nat.Port) string {
+		WaitingFor: wait.ForSQL(nat.Port("5432"), "postgres", func(host string, p nat.Port) string {
 			return fmt.Sprintf("postgres://test:test@localhost:%v/FenceLive?sslmode=disable", p.Port())
 		}),
 	}
