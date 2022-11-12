@@ -11,6 +11,7 @@ import (
 	"strconv"
 )
 
+// CreateUser is the resolver for the CreateUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
 	userData := r.InputMapper.MapUser(input)
 	user, err := r.Users.CreateUser(ctx, userData)
@@ -24,6 +25,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	return mappedUser, nil
 }
 
+// GetAllUsers is the resolver for the getAllUsers field.
 func (r *queryResolver) GetAllUsers(ctx context.Context) ([]*model.User, error) {
 	users, err := r.Users.GetAllUsers(ctx)
 	if err != nil {
@@ -32,6 +34,7 @@ func (r *queryResolver) GetAllUsers(ctx context.Context) ([]*model.User, error) 
 	return r.Mapper.MapUserArray(users)
 }
 
+// GetUserByID is the resolver for the getUserByID field.
 func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
 	Id, err := strconv.Atoi(userID)
 	if err != nil {
@@ -44,18 +47,22 @@ func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.
 	return r.Mapper.MapUser(user)
 }
 
+// ParticipatingTournaments is the resolver for the ParticipatingTournaments field.
 func (r *userResolver) ParticipatingTournaments(ctx context.Context, obj *model.User) ([]*model.Tournament, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// LikedTournaments is the resolver for the LikedTournaments field.
 func (r *userResolver) LikedTournaments(ctx context.Context, obj *model.User) ([]*model.Tournament, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Following is the resolver for the Following field.
 func (r *userResolver) Following(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Followers is the resolver for the Followers field.
 func (r *userResolver) Followers(ctx context.Context, obj *model.User) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }

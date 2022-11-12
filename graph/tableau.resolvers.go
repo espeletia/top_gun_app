@@ -10,6 +10,7 @@ import (
 	"fmt"
 )
 
+// Matches is the resolver for the Matches field.
 func (r *tableauResolver) Matches(ctx context.Context, obj *model.Tableau) ([]*model.Match, error) {
 	panic(fmt.Errorf("not implemented"))
 }

@@ -10,10 +10,12 @@ import (
 	"fmt"
 )
 
+// Owner is the resolver for the Owner field.
 func (r *clubResolver) Owner(ctx context.Context, obj *model.Club) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Members is the resolver for the Members field.
 func (r *clubResolver) Members(ctx context.Context, obj *model.Club) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }

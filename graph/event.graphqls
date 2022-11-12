@@ -1,7 +1,7 @@
 enum EventRoles{
   REFEREE
   ADMIN
-  ATHELETE
+  ATHLETE
 }
 
 enum EventWeapon {
@@ -85,7 +85,7 @@ input CreateEventInput{
   Name: String!
   Description: String
   RefereeIds: [ID!]! 
-  AthleteIds: [AthleteSeedingInput!]!
+  Athletes: [AthleteSeedingInput!]!
   start: Int!
   end: Int!
   Details: DetailsInput!

@@ -1058,7 +1058,7 @@ var sources = []*ast.Source{
 	{Name: "../event.graphqls", Input: `enum EventRoles{
   REFEREE
   ADMIN
-  ATHELETE
+  ATHLETE
 }
 
 enum EventWeapon {
@@ -1142,7 +1142,7 @@ input CreateEventInput{
   Name: String!
   Description: String
   RefereeIds: [ID!]! 
-  AthleteIds: [AthleteSeedingInput!]!
+  Athletes: [AthleteSeedingInput!]!
   start: Int!
   end: Int!
   Details: DetailsInput!
@@ -8579,7 +8579,12 @@ func (ec *executionContext) unmarshalInputAthleteSeedingInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"UserId", "Seed"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "UserId":
 			var err error
@@ -8610,7 +8615,12 @@ func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Name", "Description", "RefereeIds", "Athletes", "start", "end", "Details"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Name":
 			var err error
@@ -8636,11 +8646,11 @@ func (ec *executionContext) unmarshalInputCreateEventInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
-		case "AthleteIds":
+		case "Athletes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AthleteIds"))
-			it.AthleteIds, err = ec.unmarshalNAthleteSeedingInput2ᚕᚖFenceLiveᚋgraphᚋmodelᚐAthleteSeedingInputᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Athletes"))
+			it.Athletes, err = ec.unmarshalNAthleteSeedingInput2ᚕᚖFenceLiveᚋgraphᚋmodelᚐAthleteSeedingInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8681,7 +8691,12 @@ func (ec *executionContext) unmarshalInputCreateMatchInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"LeftAthlete"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "LeftAthlete":
 			var err error
@@ -8704,7 +8719,12 @@ func (ec *executionContext) unmarshalInputCreateTournamentInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"start", "end", "name", "Location", "City", "Country", "OwnerId", "Events", "Description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "start":
 			var err error
@@ -8791,7 +8811,12 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Email", "BornIn", "HashedPassword", "UserName", "FirstName", "LastName", "Nationality"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Email":
 			var err error
@@ -8862,7 +8887,12 @@ func (ec *executionContext) unmarshalInputDetailsInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Weapon", "Type", "Gender", "Category"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Weapon":
 			var err error
@@ -8909,7 +8939,12 @@ func (ec *executionContext) unmarshalInputLocationInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"Lat", "Lon", "Address"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "Lat":
 			var err error
@@ -8948,7 +8983,12 @@ func (ec *executionContext) unmarshalInputUpdateTournamentInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	for k, v := range asMap {
+	fieldsInOrder := [...]string{"start", "end", "Location", "name", "City", "Country", "Description", "OwnerId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
 		switch k {
 		case "start":
 			var err error

@@ -10,14 +10,17 @@ import (
 	"fmt"
 )
 
+// Referee is the resolver for the Referee field.
 func (r *pooleResolver) Referee(ctx context.Context, obj *model.Poole) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Athletes is the resolver for the Athletes field.
 func (r *pooleResolver) Athletes(ctx context.Context, obj *model.Poole) ([]*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Matches is the resolver for the Matches field.
 func (r *pooleResolver) Matches(ctx context.Context, obj *model.Poole) ([]*model.Match, error) {
 	panic(fmt.Errorf("not implemented"))
 }

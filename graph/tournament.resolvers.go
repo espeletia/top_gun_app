@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+// CreateTournament is the resolver for the CreateTournament field.
 func (r *mutationResolver) CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error) {
 	tournamentInput, eventInput, err := r.InputMapper.MapTournament(input)
 	if err != nil {
@@ -28,6 +29,7 @@ func (r *mutationResolver) CreateTournament(ctx context.Context, input model.Cre
 	return r.Mapper.MapTournament(tournament)
 }
 
+// UpdateTournament is the resolver for the UpdateTournament field.
 func (r *mutationResolver) UpdateTournament(ctx context.Context, id string, input model.UpdateTournamentInput) (*model.Tournament, error) {
 	tournamentId, err := strconv.Atoi(id)
 	if err != nil {
@@ -44,6 +46,7 @@ func (r *mutationResolver) UpdateTournament(ctx context.Context, id string, inpu
 	return r.Mapper.MapTournament(tournament)
 }
 
+// GetAllTournaments is the resolver for the getAllTournaments field.
 func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournament, error) {
 	tournaments, err := r.Tournaments.GetAllTournaments(ctx)
 	if err != nil {
@@ -52,6 +55,7 @@ func (r *queryResolver) GetAllTournaments(ctx context.Context) ([]*model.Tournam
 	return r.Mapper.MapTournamentArray(tournaments)
 }
 
+// GetTournamentByID is the resolver for the getTournamentById field.
 func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*model.Tournament, error) {
 	tournamentId, err := strconv.Atoi(id)
 	if err != nil {
@@ -64,6 +68,7 @@ func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*mode
 	return r.Mapper.MapTournament(tournament)
 }
 
+// Owner is the resolver for the Owner field.
 func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (*model.User, error) {
 	ownerID, err := strconv.Atoi(obj.OwnerID)
 	if err != nil {
@@ -76,6 +81,7 @@ func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (
 	return r.Mapper.MapUser(owner)
 }
 
+// Events is the resolver for the Events field.
 func (r *tournamentResolver) Events(ctx context.Context, obj *model.Tournament) ([]*model.Event, error) {
 	tournamentId, err := strconv.Atoi(obj.ID)
 	if err != nil {

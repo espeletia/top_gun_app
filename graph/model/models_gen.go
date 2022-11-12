@@ -10,7 +10,7 @@ import (
 
 type Athlete struct {
 	UserID         string `json:"userId"`
-	User           *User  `json:"User"`
+	user           *User  `json:"User"`
 	PooleSeeding   int64  `json:"PooleSeeding"`
 	TableauSeeding *int64 `json:"TableauSeeding"`
 	FinalRanking   *int64 `json:"FinalRanking"`
@@ -36,7 +36,7 @@ type CreateEventInput struct {
 	Name        string                 `json:"Name"`
 	Description *string                `json:"Description"`
 	RefereeIds  []string               `json:"RefereeIds"`
-	AthleteIds  []*AthleteSeedingInput `json:"AthleteIds"`
+	Athletes    []*AthleteSeedingInput `json:"Athletes"`
 	Start       int64                  `json:"start"`
 	End         int64                  `json:"end"`
 	Details     *DetailsInput          `json:"Details"`
@@ -350,20 +350,20 @@ func (e EventGenderMix) MarshalGQL(w io.Writer) {
 type EventRoles string
 
 const (
-	EventRolesReferee  EventRoles = "REFEREE"
-	EventRolesAdmin    EventRoles = "ADMIN"
-	EventRolesAthelete EventRoles = "ATHELETE"
+	EventRolesReferee EventRoles = "REFEREE"
+	EventRolesAdmin   EventRoles = "ADMIN"
+	EventRolesAthlete EventRoles = "ATHLETE"
 )
 
 var AllEventRoles = []EventRoles{
 	EventRolesReferee,
 	EventRolesAdmin,
-	EventRolesAthelete,
+	EventRolesAthlete,
 }
 
 func (e EventRoles) IsValid() bool {
 	switch e {
-	case EventRolesReferee, EventRolesAdmin, EventRolesAthelete:
+	case EventRolesReferee, EventRolesAdmin, EventRolesAthlete:
 		return true
 	}
 	return false
