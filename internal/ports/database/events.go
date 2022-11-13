@@ -51,22 +51,20 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	if err != nil {
 		return nil, err
 	}
+	//TODO: FIX THIS SHIT
+	// for _, athlete := range event.Athletes{
+	// 	athleteModel := model.UserEvent{
+	// 		UserID: int32(athlete.UserID),
+	// 		UserRole: domain.EventRoleAthlete,
+	// 		EventID: dest.ID,
+	// 		PooleSeeding: int32(athlete.PooleSeeding),
+	// 		Status: domain.AthleteCompeting,
+	// 	}
+	// 	athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID)
 
-	return &domain.Event{
-		ID:           int64(dest.ID),
-		Status:       dest.Status,
-		TournamentId: int64(dest.TournamentID),
-		EventData: domain.EventData{
-			Name:        dest.Name,
-			Type:        dest.Type,
-			Gender:      dest.Gender,
-			Category:    dest.Category,
-			Description: dest.Description,
-			Weapon:      dest.Weapon,
-			Start:       dest.StartTime,
-			End:         dest.EndTime,
-		},
-	}, nil
+	// }
+
+	return mapDBEvent(dest.Events), nil
 }
 
 func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error) {
@@ -85,21 +83,25 @@ func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournament
 	var events []*domain.Event
 
 	for _, evnt := range dest {
-		events = append(events, &domain.Event{
-			ID:           int64(evnt.ID),
-			Status:       evnt.Status,
-			TournamentId: int64(evnt.TournamentID),
-			EventData: domain.EventData{
-				Name:        evnt.Name,
-				Description: evnt.Description,
-				Start:       evnt.StartTime,
-				End:         evnt.EndTime,
-				Weapon:      evnt.Weapon,
-				Type:        evnt.Type,
-				Gender:      evnt.Gender,
-				Category:    evnt.Category,
-			},
-		})
+		events = append(events, mapDBEvent(evnt.Events))
 	}
 	return events, nil
+}
+
+func mapDBEvent(Event model.Events) *domain.Event {
+	return &domain.Event{
+		ID:           int64(Event.ID),
+		Status:       Event.Status,
+		TournamentId: int64(Event.TournamentID),
+		EventData: domain.EventData{
+			Name:        Event.Name,
+			Description: Event.Description,
+			Start:       Event.StartTime,
+			End:         Event.EndTime,
+			Weapon:      Event.Weapon,
+			Type:        Event.Type,
+			Gender:      Event.Gender,
+			Category:    Event.Category,
+		},
+	}
 }

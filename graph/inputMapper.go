@@ -64,6 +64,10 @@ func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*dom
 }
 
 func (gim GqlInputMapper) MapEvent(input model.CreateEventInput) (*domain.EventData, error) {
+	athletes, err := gim.MapAthleteArray(input.Athletes)
+	if err != nil {
+		return nil, err
+	}
 	mappedEvent := &domain.EventData{
 		Name:        input.Name,
 		Description: input.Description,
@@ -73,6 +77,7 @@ func (gim GqlInputMapper) MapEvent(input model.CreateEventInput) (*domain.EventD
 		Type:        string(input.Details.Type),
 		Gender:      string(input.Details.Gender),
 		Category:    string(input.Details.Category),
+		Athletes:    athletes,
 	}
 	return mappedEvent, nil
 }
@@ -100,4 +105,27 @@ func (gim GqlInputMapper) MapTournamentUpdate(input model.UpdateTournamentInput)
 		}
 	}
 	return &tournmtData, nil
+}
+
+func (gim GqlInputMapper) MapAthlete(input model.AthleteSeedingInput) (*domain.Athlete, error) {
+	userId, err := strconv.Atoi(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.Athlete{
+		UserID:       int64(userId),
+		PooleSeeding: int64(input.Seed),
+	}, nil
+}
+
+func (gim GqlInputMapper) MapAthleteArray(input []*model.AthleteSeedingInput) ([]*domain.Athlete, error) {
+	var mappedAthletes []*domain.Athlete
+	for _, athlete := range input {
+		mappedAthlete, err := gim.MapAthlete(*athlete)
+		if err != nil {
+			return nil, err
+		}
+		mappedAthletes = append(mappedAthletes, mappedAthlete)
+	}
+	return mappedAthletes, nil
 }
