@@ -51,20 +51,26 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	if err != nil {
 		return nil, err
 	}
-	//TODO: FIX THIS SHIT
-	// for _, athlete := range event.Athletes{
-	// 	athleteModel := model.UserEvent{
-	// 		UserID: int32(athlete.UserID),
-	// 		UserRole: domain.EventRoleAthlete,
-	// 		EventID: dest.ID,
-	// 		PooleSeeding: int32(athlete.PooleSeeding),
-	// 		Status: domain.AthleteCompeting,
-	// 	}
-	// 	athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID)
+	var athletes []*domain.EventUser
+	//Done: the shit has been fixed :)
+	for _, athlete := range event.Athletes {
+		athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID, table.UserEvent.EventID, table.UserEvent.PooleSeeding, table.UserEvent.Status).
+			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting).
+			RETURNING(table.UserEvent.AllColumns)
+		var athleteDest struct {
+			model.UserEvent
+		}
+		err := athleteStmt.Query(edbs.DB, &athleteDest)
+		if err != nil {
+			return nil, err
+		}
+		athletes = append(athletes, mapDBEventUser(athleteDest.UserEvent))
+	}
 
-	// }
+	storedEvent := mapDBEvent(dest.Events)
+	storedEvent.Athletes = athletes
 
-	return mapDBEvent(dest.Events), nil
+	return storedEvent, nil
 }
 
 func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error) {
@@ -103,5 +109,19 @@ func mapDBEvent(Event model.Events) *domain.Event {
 			Gender:      Event.Gender,
 			Category:    Event.Category,
 		},
+	}
+}
+
+func mapDBEventUser(user model.UserEvent) *domain.EventUser {
+	pooleSeeding := int64(*user.PooleSeeding)
+	tableauSeeding := int64(*user.TableauSeeding)
+	FinalRanking := int64(*user.FinalRanking)
+	return &domain.EventUser{
+		UserID:         int64(user.UserID),
+		Status:         user.Status,
+		Role:           user.UserRole,
+		PooleSeeding:   &pooleSeeding,
+		TableauSeeding: &tableauSeeding,
+		FinalRanking:   &FinalRanking,
 	}
 }

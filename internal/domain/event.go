@@ -58,12 +58,14 @@ type EventData struct {
 	Type        string
 	Gender      string
 	Category    string
-	Athletes    []*Athlete
+	Athletes    []*EventUser
 }
 
-type Athlete struct {
+type EventUser struct {
 	UserID         int64
-	PooleSeeding   int64
+	PooleSeeding   *int64
 	TableauSeeding *int64
 	FinalRanking   *int64
+	Role           string
+	Status         *string
 }
