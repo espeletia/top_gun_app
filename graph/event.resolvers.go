@@ -13,7 +13,15 @@ import (
 
 // User is the resolver for the User field.
 func (r *athleteResolver) User(ctx context.Context, obj *model.Athlete) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	userId, err := strconv.Atoi(obj.UserID)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.Users.GetUserById(ctx, int64(userId))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapUser(user)
 }
 
 // Tournament is the resolver for the Tournament field.
@@ -28,7 +36,16 @@ func (r *eventResolver) Referees(ctx context.Context, obj *model.Event) ([]*mode
 
 // Athletes is the resolver for the Athletes field.
 func (r *eventResolver) Athletes(ctx context.Context, obj *model.Event) ([]*model.Athlete, error) {
-	panic(fmt.Errorf("not implemented"))
+	eventId, err := strconv.Atoi(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	athletes, err := r.Events.GetAllAthletes(ctx, int64(eventId))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapAthleteArray(athletes)
+
 }
 
 // Pooles is the resolver for the Pooles field.

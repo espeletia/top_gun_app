@@ -23,3 +23,7 @@ func (eu EventUsecase) CreateEvent(ctx context.Context, event domain.EventData, 
 func (eu EventUsecase) GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error) {
 	return eu.store.GetByTournamentId(ctx, tournamentId)
 }
+
+func (eu EventUsecase) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error) {
+	return eu.store.GetAllAthletes(ctx, eventId)
+}

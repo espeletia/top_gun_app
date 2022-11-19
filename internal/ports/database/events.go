@@ -13,6 +13,7 @@ import (
 type EventStoreInterface interface {
 	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
 	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
+	GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error)
 }
 
 func NewEventDatabaseStore(db *sql.DB) *EventDatabaseStore {
@@ -92,6 +93,27 @@ func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournament
 		events = append(events, mapDBEvent(evnt.Events))
 	}
 	return events, nil
+}
+
+func (edbs EventDatabaseStore) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error) {
+	stmt := table.UserEvent.SELECT(table.UserEvent.AllColumns).
+		WHERE(table.UserEvent.EventID.EQ(postgres.Int(eventId)).AND(table.UserEvent.UserRole.EQ(postgres.String(domain.EventRoleAthlete))))
+
+	var dest []struct {
+		model.UserEvent
+	}
+
+	err := stmt.Query(edbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	var athletes []*domain.EventUser
+	for _, athlete := range dest {
+		mappedAthlete := mapDBEventUser(athlete.UserEvent)
+		athletes = append(athletes, mappedAthlete)
+	}
+	return athletes, nil
 }
 
 func mapDBEvent(Event model.Events) *domain.Event {
