@@ -55,8 +55,8 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	var athletes []*domain.EventUser
 	//Done: the shit has been fixed :)
 	for _, athlete := range event.Athletes {
-		athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID, table.UserEvent.EventID, table.UserEvent.PooleSeeding, table.UserEvent.Status).
-			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting).
+		athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID, table.UserEvent.EventID, table.UserEvent.PooleSeeding, table.UserEvent.Status, table.UserEvent.UserRole).
+			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting, domain.EventRoleAthlete).
 			RETURNING(table.UserEvent.AllColumns)
 		var athleteDest struct {
 			model.UserEvent
