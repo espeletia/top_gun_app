@@ -24,7 +24,7 @@ func (eu EventUsecase) GetByTournamentId(ctx context.Context, tournamentId int64
 	return eu.store.GetByTournamentId(ctx, tournamentId)
 }
 
-func (eu EventUsecase) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error) {
+func (eu EventUsecase) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.Athlete, error) {
 	return eu.store.GetAllAthletes(ctx, eventId)
 }
 

@@ -45,7 +45,6 @@ func (r *eventResolver) Athletes(ctx context.Context, obj *model.Event) ([]*mode
 		return nil, err
 	}
 	return r.Mapper.MapAthleteArray(athletes)
-
 }
 
 // Pooles is the resolver for the Pooles field.

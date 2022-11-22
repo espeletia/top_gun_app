@@ -6,6 +6,7 @@ import (
 	"FenceLive/internal/ports/database/gen/FenceLive/public/table"
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/go-jet/jet/v2/postgres"
 )
@@ -13,7 +14,7 @@ import (
 type EventStoreInterface interface {
 	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
 	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
-	GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error)
+	GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.Athlete, error)
 	GetEventById(ctx context.Context, eventId int64) (*domain.Event, error)
 }
 
@@ -71,21 +72,24 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	if err != nil {
 		return nil, err
 	}
-	var athletes []*domain.EventUser
+	var athletes []*domain.Athlete
 	//Done: the shit has been fixed :)
 	//nvm
+	fmt.Printf("athletes: %v\n", event.Athletes)
 	for _, athlete := range event.Athletes {
-		athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID, table.UserEvent.EventID, table.UserEvent.PooleSeeding, table.UserEvent.Status, table.UserEvent.UserRole).
-			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting, domain.EventRoleAthlete).
-			RETURNING(table.UserEvent.AllColumns)
+		athleteStmt := table.AthleteEvent.INSERT(table.AthleteEvent.UserID, table.AthleteEvent.EventID, table.AthleteEvent.PooleSeeding, table.AthleteEvent.Status).
+			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting).
+			RETURNING(table.AthleteEvent.AllColumns)
 		var athleteDest struct {
-			model.UserEvent
+			model.AthleteEvent
 		}
+		fmt.Printf("stored athletes: %v\n", athleteDest)
 		err := athleteStmt.Query(edbs.DB, &athleteDest)
 		if err != nil {
 			return nil, err
 		}
-		athletes = append(athletes, mapDBEventUser(athleteDest.UserEvent))
+		athletes = append(athletes, mapDBEventAthlete(athleteDest.AthleteEvent))
+		fmt.Printf("appended athletes: %v\n", athleteDest)
 	}
 
 	storedEvent := mapDBEvent(dest.Events)
@@ -115,12 +119,12 @@ func (edbs EventDatabaseStore) GetByTournamentId(ctx context.Context, tournament
 	return events, nil
 }
 
-func (edbs EventDatabaseStore) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error) {
-	stmt := table.UserEvent.SELECT(table.UserEvent.AllColumns).
-		WHERE(table.UserEvent.EventID.EQ(postgres.Int(eventId)).AND(table.UserEvent.UserRole.EQ(postgres.String(domain.EventRoleAthlete))))
+func (edbs EventDatabaseStore) GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.Athlete, error) {
+	stmt := table.AthleteEvent.SELECT(table.AthleteEvent.AllColumns).
+		WHERE(table.AthleteEvent.EventID.EQ(postgres.Int(eventId)))
 
 	var dest []struct {
-		model.UserEvent
+		model.AthleteEvent
 	}
 
 	err := stmt.Query(edbs.DB, &dest)
@@ -128,9 +132,9 @@ func (edbs EventDatabaseStore) GetAllAthletes(ctx context.Context, eventId int64
 		return nil, err
 	}
 
-	var athletes []*domain.EventUser
+	var athletes []*domain.Athlete
 	for _, athlete := range dest {
-		mappedAthlete := mapDBEventUser(athlete.UserEvent)
+		mappedAthlete := mapDBEventAthlete(athlete.AthleteEvent)
 		athletes = append(athletes, mappedAthlete)
 	}
 	return athletes, nil
@@ -154,16 +158,23 @@ func mapDBEvent(Event model.Events) *domain.Event {
 	}
 }
 
-func mapDBEventUser(user model.UserEvent) *domain.EventUser {
-	pooleSeeding := int64(*user.PooleSeeding)
-	tableauSeeding := int64(*user.TableauSeeding)
-	FinalRanking := int64(*user.FinalRanking)
-	return &domain.EventUser{
+func mapDBEventAthlete(user model.AthleteEvent) *domain.Athlete {
+	pooleSeeding := int64(user.PooleSeeding)
+	var tableauSeeding *int64
+	if user.TableauSeeding != nil {
+		tableauSeedingval := int64(*user.TableauSeeding)
+		tableauSeeding = &tableauSeedingval
+	}
+	var finalRanking *int64
+	if user.FinalRanking != nil {
+		finalRankingval := int64(*user.FinalRanking)
+		finalRanking = &finalRankingval
+	}
+	return &domain.Athlete{
 		UserID:         int64(user.UserID),
 		Status:         user.Status,
-		Role:           user.UserRole,
-		PooleSeeding:   &pooleSeeding,
-		TableauSeeding: &tableauSeeding,
-		FinalRanking:   &FinalRanking,
+		PooleSeeding:   pooleSeeding,
+		TableauSeeding: tableauSeeding,
+		FinalRanking:   finalRanking,
 	}
 }

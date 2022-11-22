@@ -102,17 +102,17 @@ func (gm GqlMapper) MapEventArray(events []*domain.Event) ([]*model.Event, error
 	return mappedEventArray, nil
 }
 
-func (gm GqlMapper) MapAthlete(userEvent *domain.EventUser) (*model.Athlete, error) {
+func (gm GqlMapper) MapAthlete(userEvent *domain.Athlete) (*model.Athlete, error) {
 	userID := strconv.Itoa(int(userEvent.UserID))
 	return &model.Athlete{
 		UserID:         userID,
-		PooleSeeding:   *userEvent.PooleSeeding,
+		PooleSeeding:   userEvent.PooleSeeding,
 		TableauSeeding: userEvent.TableauSeeding,
 		FinalRanking:   userEvent.FinalRanking,
 	}, nil
 }
 
-func (gm GqlMapper) MapAthleteArray(userEvents []*domain.EventUser) ([]*model.Athlete, error) {
+func (gm GqlMapper) MapAthleteArray(userEvents []*domain.Athlete) ([]*model.Athlete, error) {
 	var mappedAthletes []*model.Athlete
 	for _, athlete := range userEvents {
 		mappedAthlete, err := gm.MapAthlete(athlete)

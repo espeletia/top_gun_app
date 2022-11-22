@@ -107,19 +107,19 @@ func (gim GqlInputMapper) MapTournamentUpdate(input model.UpdateTournamentInput)
 	return &tournmtData, nil
 }
 
-func (gim GqlInputMapper) MapEventUser(input model.AthleteSeedingInput) (*domain.EventUser, error) {
+func (gim GqlInputMapper) MapEventUser(input model.AthleteSeedingInput) (*domain.Athlete, error) {
 	userId, err := strconv.Atoi(input.UserID)
 	if err != nil {
 		return nil, err
 	}
-	return &domain.EventUser{
+	return &domain.Athlete{
 		UserID:       int64(userId),
-		PooleSeeding: &input.Seed,
+		PooleSeeding: input.Seed,
 	}, nil
 }
 
-func (gim GqlInputMapper) MapEventUserArray(input []*model.AthleteSeedingInput) ([]*domain.EventUser, error) {
-	var mappedAthletes []*domain.EventUser
+func (gim GqlInputMapper) MapEventUserArray(input []*model.AthleteSeedingInput) ([]*domain.Athlete, error) {
+	var mappedAthletes []*domain.Athlete
 	for _, athlete := range input {
 		mappedAthlete, err := gim.MapEventUser(*athlete)
 		if err != nil {
