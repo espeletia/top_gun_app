@@ -12,7 +12,7 @@ import (
 
 type TournamentStoreInterface interface {
 	CreateTournament(ctx context.Context, TournData domain.TournamentData) (*domain.Tournament, error)
-	GetByTournamentId(ctx context.Context, id int64) (*domain.Tournament, error)
+	GetTournamentById(ctx context.Context, id int64) (*domain.Tournament, error)
 	GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error)
 	UpdateTournamentData(ctx context.Context, tournamentId int64, tournamentData domain.TournamentData) (*domain.Tournament, error)
 }
@@ -87,10 +87,10 @@ func (tdbs TournamentDatabaseStore) UpdateTournamentData(ctx context.Context, to
 	return mapDBTournament(dest.Tournaments), nil
 }
 
-func (tdbs TournamentDatabaseStore) GetByTournamentId(ctx context.Context, id int64) (*domain.Tournament, error) {
+func (tdbs TournamentDatabaseStore) GetTournamentById(ctx context.Context, id int64) (*domain.Tournament, error) {
 	stmt := table.Tournaments.SELECT(table.Tournaments.AllColumns).WHERE(table.Tournaments.ID.EQ(postgres.Int(id)))
 
-	var dest struct {
+	var dest []struct {
 		model.Tournaments
 	}
 
@@ -99,7 +99,11 @@ func (tdbs TournamentDatabaseStore) GetByTournamentId(ctx context.Context, id in
 		return nil, err
 	}
 
-	return mapDBTournament(dest.Tournaments), nil
+	if len(dest) < 1 {
+		return nil, domain.TournamentNotFound
+	}
+
+	return mapDBTournament(dest[0].Tournaments), nil
 }
 
 func (tdbs TournamentDatabaseStore) GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error) {

@@ -77,7 +77,15 @@ func (r *mutationResolver) CreateEvent(ctx context.Context, tournamentID string,
 
 // GetEvent is the resolver for the GetEvent field.
 func (r *queryResolver) GetEvent(ctx context.Context, eventID string) (*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	eventId, err := strconv.Atoi(eventID)
+	if err != nil {
+		return nil, err
+	}
+	event, err := r.Events.GetEventById(ctx, int64(eventId))
+	if err != nil {
+		return nil, err
+	}
+	return r.Mapper.MapEvent(event)
 }
 
 // Athlete returns generated.AthleteResolver implementation.

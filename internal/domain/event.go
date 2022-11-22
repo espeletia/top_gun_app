@@ -40,6 +40,8 @@ const (
 
 	AthleteFinished  = "FINISHED"
 	AthleteCompeting = "COMPETING"
+
+	EventNotFound = Error("Event does not exist")
 )
 
 type Event struct {

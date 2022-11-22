@@ -14,6 +14,7 @@ type EventStoreInterface interface {
 	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
 	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
 	GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.EventUser, error)
+	GetEventById(ctx context.Context, eventId int64) (*domain.Event, error)
 }
 
 func NewEventDatabaseStore(db *sql.DB) *EventDatabaseStore {
@@ -24,6 +25,24 @@ func NewEventDatabaseStore(db *sql.DB) *EventDatabaseStore {
 
 type EventDatabaseStore struct {
 	DB *sql.DB
+}
+
+func (edbs EventDatabaseStore) GetEventById(ctx context.Context, eventId int64) (*domain.Event, error) {
+	stmt := table.Events.SELECT(table.Events.AllColumns).WHERE(table.Events.ID.EQ(postgres.Int(eventId)))
+	var dest []struct {
+		model.Events
+	}
+
+	err := stmt.Query(edbs.DB, &dest)
+
+	if err != nil {
+		return nil, err
+	}
+	if len(dest) < 1 {
+		return nil, domain.EventNotFound
+	}
+
+	return mapDBEvent(dest[0].Events), nil
 }
 
 func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error) {
@@ -54,6 +73,7 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	}
 	var athletes []*domain.EventUser
 	//Done: the shit has been fixed :)
+	//nvm
 	for _, athlete := range event.Athletes {
 		athleteStmt := table.UserEvent.INSERT(table.UserEvent.UserID, table.UserEvent.EventID, table.UserEvent.PooleSeeding, table.UserEvent.Status, table.UserEvent.UserRole).
 			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting, domain.EventRoleAthlete).

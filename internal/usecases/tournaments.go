@@ -20,8 +20,8 @@ func (tu TournamentUsecase) CreateTournament(ctx context.Context, tournData doma
 	return tu.store.CreateTournament(ctx, tournData)
 }
 
-func (tu TournamentUsecase) GetByTournamentId(ctx context.Context, id int64) (*domain.Tournament, error) {
-	return tu.store.GetByTournamentId(ctx, id)
+func (tu TournamentUsecase) GetTournamentById(ctx context.Context, id int64) (*domain.Tournament, error) {
+	return tu.store.GetTournamentById(ctx, id)
 }
 
 func (tu TournamentUsecase) GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error) {

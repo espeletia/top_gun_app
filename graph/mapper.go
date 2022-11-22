@@ -74,6 +74,7 @@ func (gm GqlMapper) MapTournamentArray(tournament []*domain.Tournament) ([]*mode
 
 func (gm GqlMapper) MapEvent(event *domain.Event) (*model.Event, error) {
 	mappedEvent := &model.Event{
+		Name:         event.Name,
 		ID:           strconv.Itoa(int(event.ID)),
 		Start:        int64(event.Start.Unix()),
 		End:          int64(event.End.Unix()),

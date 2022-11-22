@@ -4,6 +4,8 @@ import "time"
 
 const TournamentStatusCreated = "CREATED"
 
+const TournamentNotFound = Error("Tournament does not exist")
+
 type Tournament struct {
 	Id     int64
 	Status string
@@ -26,4 +28,3 @@ type Location struct {
 	Lon     float64
 	Address string
 }
-

@@ -61,7 +61,7 @@ func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*mode
 	if err != nil {
 		return nil, err
 	}
-	tournament, err := r.Tournaments.GetByTournamentId(ctx, int64(tournamentId))
+	tournament, err := r.Tournaments.GetTournamentById(ctx, int64(tournamentId))
 	if err != nil {
 		return nil, err
 	}
