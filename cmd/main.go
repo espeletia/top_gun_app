@@ -5,12 +5,9 @@ package main
 //go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=../internal/ports/database/gen
 
 import (
-	"FenceLive/graph"
 	"FenceLive/graph/generated"
 	"FenceLive/internal/config"
-	"FenceLive/internal/ports/database"
 	"FenceLive/internal/setup"
-	"FenceLive/internal/usecases"
 	"context"
 	"errors"
 	"log"
@@ -41,14 +38,12 @@ func run() error {
 		log.Println("Error while connecting to database")
 		return err
 	}
+	resolver, err := setup.NewResolver(dbConn)
+	if err != nil {
+		return err
+	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graph.Resolver{
-			Tournaments: usecases.NewTournamentUsecase(database.NewTournamentDatabaseStore(dbConn)),
-			Users:       usecases.NewUserUsecase(database.NewUserDatabaseStore(dbConn)),
-			Events:      usecases.NewEventUsecase(database.NewEventDatabaseStore(dbConn)),
-			Mapper:      graph.NweGqlMapper(),
-			InputMapper: graph.NewInputMapper(),
-		},
+		Resolvers: resolver,
 	}))
 
 	router := mux.NewRouter()

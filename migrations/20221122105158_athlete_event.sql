@@ -3,7 +3,9 @@
 CREATE TABLE athlete_event (
     user_id SERIAL NOT NULL,
     event_id SERIAL NOT NULL,
-    poole_seeding integer NOT NULL,
+    initial_seeding integer NOT NULL,
+    athlete_name varchar(20),
+    athlete_last_name varchar(20),
     tableau_seeding integer,
     final_ranking integer,
     status varchar(255) NOT NULL,
