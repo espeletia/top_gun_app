@@ -1,4 +1,4 @@
-package database
+package events
 
 import (
 	"FenceLive/internal/domain"
@@ -10,13 +10,6 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 )
-
-type EventStoreInterface interface {
-	CreateEvent(ctx context.Context, event domain.EventData, tournamentId int64) (*domain.Event, error)
-	GetByTournamentId(ctx context.Context, tournamentId int64) ([]*domain.Event, error)
-	GetAllAthletes(ctx context.Context, eventId int64) ([]*domain.Athlete, error)
-	GetEventById(ctx context.Context, eventId int64) (*domain.Event, error)
-}
 
 func NewEventDatabaseStore(db *sql.DB) *EventDatabaseStore {
 	return &EventDatabaseStore{

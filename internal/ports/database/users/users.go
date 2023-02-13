@@ -1,4 +1,4 @@
-package database
+package users
 
 import (
 	"FenceLive/internal/domain"
@@ -9,17 +9,6 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 )
-
-type UserStoreInterface interface {
-	CreateUser(ctx context.Context, user domain.UserData) (*domain.User, error)
-	GetAllUsers(ctx context.Context) ([]*domain.User, error)
-	GetUserById(ctx context.Context, id int64) (*domain.User, error)
-	//GetUserByEmail(email string) (*User, error)
-	//GetUserByUsername(username string) (*User, error)
-	//GetUsers() ([]*User, error)
-	//UpdateUser(user *User) error
-	//DeleteUser(id string) error
-}
 
 func NewUserDatabaseStore(db *sql.DB) *UserDatabaseStore {
 	return &UserDatabaseStore{

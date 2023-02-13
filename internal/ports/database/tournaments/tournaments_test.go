@@ -1,7 +1,8 @@
-package database
+package tournaments
 
 import (
 	"FenceLive/internal/domain"
+	"FenceLive/internal/ports/database/users"
 	"context"
 	"database/sql"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func createDockerTournamentStore(t *testing.T, ctx context.Context) (*UserDatabaseStore, *TournamentDatabaseStore, func(), error) {
+func createDockerTournamentStore(t *testing.T, ctx context.Context) (*users.UserDatabaseStore, *TournamentDatabaseStore, func(), error) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},
@@ -52,7 +53,7 @@ func createDockerTournamentStore(t *testing.T, ctx context.Context) (*UserDataba
 		log.Fatalf("Could not run migration: %s", err)
 		return nil, nil, nil, err
 	}
-	store := NewUserDatabaseStore(db)
+	store := users.NewUserDatabaseStore(db)
 	return store, NewTournamentDatabaseStore(db), func() {
 		db.Close()
 		postgresC.Terminate(ctx)

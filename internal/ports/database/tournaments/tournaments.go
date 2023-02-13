@@ -1,4 +1,4 @@
-package database
+package tournaments
 
 import (
 	"FenceLive/internal/domain"
@@ -9,13 +9,6 @@ import (
 
 	"github.com/go-jet/jet/v2/postgres"
 )
-
-type TournamentStoreInterface interface {
-	CreateTournament(ctx context.Context, TournData domain.TournamentData) (*domain.Tournament, error)
-	GetTournamentById(ctx context.Context, id int64) (*domain.Tournament, error)
-	GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error)
-	UpdateTournamentData(ctx context.Context, tournamentId int64, tournamentData domain.TournamentData) (*domain.Tournament, error)
-}
 
 func NewTournamentDatabaseStore(db *sql.DB) *TournamentDatabaseStore {
 	return &TournamentDatabaseStore{

@@ -1,4 +1,4 @@
-package database
+package users
 
 import (
 	"FenceLive/internal/domain"
