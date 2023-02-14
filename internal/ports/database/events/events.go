@@ -70,7 +70,7 @@ func (edbs EventDatabaseStore) CreateEvent(ctx context.Context, event domain.Eve
 	//nvm
 	fmt.Printf("athletes: %v\n", event.Athletes)
 	for _, athlete := range event.Athletes {
-		athleteStmt := table.AthleteEvent.INSERT(table.AthleteEvent.UserID, table.AthleteEvent.EventID, table.AthleteEvent.PooleSeeding, table.AthleteEvent.Status).
+		athleteStmt := table.AthleteEvent.INSERT(table.AthleteEvent.UserID, table.AthleteEvent.EventID, table.AthleteEvent.InitialSeeding, table.AthleteEvent.Status).
 			VALUES(athlete.UserID, dest.Events.ID, athlete.PooleSeeding, domain.AthleteCompeting).
 			RETURNING(table.AthleteEvent.AllColumns)
 		var athleteDest struct {
@@ -152,7 +152,7 @@ func mapDBEvent(Event model.Events) *domain.Event {
 }
 
 func mapDBEventAthlete(user model.AthleteEvent) *domain.Athlete {
-	pooleSeeding := int64(user.PooleSeeding)
+	pooleSeeding := int64(user.InitialSeeding)
 	var tableauSeeding *int64
 	if user.TableauSeeding != nil {
 		tableauSeedingval := int64(*user.TableauSeeding)

@@ -1,8 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE athlete_event (
-    user_id SERIAL NOT NULL,
-    event_id SERIAL NOT NULL,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
     initial_seeding integer NOT NULL,
     athlete_name varchar(20),
     athlete_last_name varchar(20),
