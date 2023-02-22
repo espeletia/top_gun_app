@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	_ "github.com/lib/pq"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func createDockerTournamentStore(t *testing.T, ctx context.Context) (*users.User
 		log.Fatalf("Failed to open Db: %s", err)
 		return nil, nil, nil, err
 	}
-	err = goose.Up(db, "../../../migrations")
+	err = goose.Up(db, "../../../../migrations")
 	if err != nil {
 		log.Fatalf("Could not run migration: %s", err)
 		return nil, nil, nil, err
@@ -106,7 +107,7 @@ func TestTournamentDatabaseStore_Create(t *testing.T) {
 	ctx := context.Background()
 	users, tournaments, cleanup, err := createDockerTournamentStore(t, ctx)
 	if err != nil {
-		t.Errorf("UserDatabaseStore.Create() error = %v", err)
+		t.Errorf("TournamentDatabaseStore.Create() error = %v", err)
 		return
 	}
 	t.Cleanup(cleanup)

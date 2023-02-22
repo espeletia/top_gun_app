@@ -48,7 +48,7 @@ func createDockerUserStore(t *testing.T, ctx context.Context) (*UserDatabaseStor
 		log.Fatalf("Failed to open Db: %s", err)
 		return nil, nil, err
 	}
-	err = goose.Up(db, "../../../migrations")
+	err = goose.Up(db, "../../../../migrations")
 	if err != nil {
 		log.Fatalf("Could not run migration: %s", err)
 		return nil, nil, err

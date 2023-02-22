@@ -38,6 +38,10 @@ func run() error {
 		log.Println("Error while connecting to database")
 		return err
 	}
+	_, err = setup.SetupMinio(configuration) //TODO: this connects the api to minio, later to be used for file uploads
+	if err != nil {
+		return err
+	}
 	resolver, err := setup.NewResolver(dbConn)
 	if err != nil {
 		return err
