@@ -12,18 +12,6 @@ services:
       - ./ci/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - FenceLive
-  minio:
-    image: docker.io/bitnami/minio:2022.2.24
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ACCESS_KEY: minio1234
-      MINIO_SECRET_KEY: minio1234
-      MINIO_DEFAULT_BUCKETS: fencelive:public
-      MINIO_DOMAIN: minio
-    networks:
-      - FenceLive
 
 networks:
   FenceLive:
