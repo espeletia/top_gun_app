@@ -6,7 +6,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: FenceLive
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
     volumes:
       - ./ci/init.sql:/docker-entrypoint-initdb.d/init.sql

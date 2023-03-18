@@ -2,8 +2,8 @@ package events
 
 import (
 	"FenceLive/internal/domain"
-	"FenceLive/internal/ports/database/gen/FenceLive/public/model"
-	"FenceLive/internal/ports/database/gen/FenceLive/public/table"
+	"FenceLive/internal/ports/database/gen/postgres/public/model"
+	"FenceLive/internal/ports/database/gen/postgres/public/table"
 	"context"
 	"database/sql"
 	"fmt"

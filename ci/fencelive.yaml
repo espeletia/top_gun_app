@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: fencelive
+  lables:
+    app: fencelive
+spec:
+  containers:
+    - name: fencelive
+      image: fencelive
+      ports:
+        - containerPort: 8080
+      env:
+        - name: DATABASE_URL
+          value: postgres://postgres:postgres@postgresql-fencelive:5432/fencelive?sslmode=disable

@@ -1,8 +1,9 @@
 package main
 
-//go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable' status
+//go run github.com/pressly/goose/v3/cmd/goose postgres "postgres://postgres:postgres@localhost:5434/postgres?sslmode=disable" up
+
 //go:generate go run github.com/99designs/gqlgen generate
-//go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=../internal/ports/database/gen
+//go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5434/postgres?sslmode=disable -path=../internal/ports/database/gen
 
 import (
 	"FenceLive/graph/generated"

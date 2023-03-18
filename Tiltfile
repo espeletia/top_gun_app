@@ -1,36 +1,51 @@
 load('ext://restart_process', 'docker_build_with_restart')
-k8s_yaml("busybox.yaml")
-
+load_dynamic('./ci/tilt/postgres.Tiltfile')
+k8s_yaml("./ci/fencelive.yaml")
 
 local_resource(
-      'compile coolProject',
-      'cd coolProject && ./build.sh',
+    'regenerate-fencelive',
+    'cd fencelive && go generate cmd/main.go',
+    deps=[
+    './fencelive/graph/'
+    ],
+    ignore=[
+    './fencelive/graph/*.go',
+    './fencelive/graph/generated',
+    './fencelive/graph/model',
+    ],
+    resource_deps=['postgresql']
+)
+
+local_resource(
+      'compile fencelive',
+      'cd fencelive && bash ./ci/build.sh',
       deps=[
-      './coolProject/',
+      './fencelive/',
       ],
       ignore=[
       'tilt_modules',
       'Tiltfile',
-      'coolProject/graph/schema.graphqls',
-      'coolProject/build',
-      'coolProject/dep',
-      'coolProject/ci/docker-compose.yaml',
-      'coolProject/swagger.yaml',
-      'coolProject/internal/handlers/swagger.yaml',
-      'coolProject/internal/handlers/generated.go',
-      'coolProject/**/testdata'
+      'fencelive/graph/schema.graphqls',
+      'fencelive/build',
+      'fencelive/dep',
+      'fencelive/ci/docker-compose.yaml',
+      'fencelive/swagger.yaml',
+      'fencelive/internal/handlers/swagger.yaml',
+      'fencelive/internal/handlers/generated.go',
+      'fencelive/**/testdata'
       ],
   )
 
-docker_build_with_restart('coolproject',
+docker_build_with_restart('fencelive',
         '.',
-        dockerfile='coolProject/Dockerfile',
+        dockerfile='fencelive/ci/Dockerfile',
         entrypoint='/app/start_server',
         only=[
-            './coolProject/build'
+            './fencelive/build'
         ],
         live_update=[
-            sync('./coolProject/build', '/app'),
+            sync('./fencelive/build', '/app'),
         ])
 
-k8s_resource("coolproject", port_forwards=["0.0.0.0:8098:8080"])
+
+k8s_resource("fencelive", port_forwards=["0.0.0.0:8098:8080"])

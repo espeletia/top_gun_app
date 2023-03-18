@@ -1,0 +1,3 @@
+DriverName: postgres
+ConnectionURI: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+RunMigration: false
