@@ -14,7 +14,8 @@ local_resource(
     './fencelive/graph/generated',
     './fencelive/graph/model',
     ],
-    resource_deps=['postgresql']
+    resource_deps=['postgresql'],
+    labels=["compile"],
 )
 
 local_resource(
@@ -35,6 +36,7 @@ local_resource(
       'fencelive/internal/handlers/generated.go',
       'fencelive/**/testdata'
       ],
+      labels=["compile"],
   )
 
 docker_build_with_restart('fencelive',
@@ -70,4 +72,4 @@ docker_build_with_restart('fencelive-migrations',
         sync('./fencelive/configurations' , '/app/configurations')
     ])
 
-k8s_resource("fencelive", port_forwards=["0.0.0.0:8080:8080"], resource_deps=['minio', 'postgresql'])
+k8s_resource("fencelive", port_forwards=["0.0.0.0:8080:8080"], resource_deps=['minio', 'postgresql'], labels=["BE"])
