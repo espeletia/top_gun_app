@@ -1,8 +1,9 @@
 FROM golang:1.20-alpine3.17
-ARG app="fencelive"
 
-ADD ./${app}/configurations /app/configurations
-ADD ./${app}/build /app
+ADD ./fencelive/build/ /app/
+ADD ./fencelive/configurations /app/configurations/
+ADD ./fencelive/migrations /app/migrations
+
 
 WORKDIR /app
 

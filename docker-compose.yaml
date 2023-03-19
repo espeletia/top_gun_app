@@ -20,7 +20,7 @@ services:
     environment:
       MINIO_ACCESS_KEY: minio1234
       MINIO_SECRET_KEY: minio1234
-      MINIO_DEFAULT_BUCKETS: fencelive:public
+      MINIO_DEFAULT_BUCKETS: go:public
       MINIO_DOMAIN: minio
     networks:
       - FenceLive

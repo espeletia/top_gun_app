@@ -15,6 +15,7 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/testcontainers/testcontainers-go v0.15.0
 	github.com/vektah/gqlparser/v2 v2.5.1
+	github.com/wexder/goose/v3 v3.0.0-20221110145500-da0dbed28bae
 	go.uber.org/zap v1.23.0
 )
 
