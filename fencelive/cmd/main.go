@@ -3,7 +3,7 @@ package main
 //go run github.com/pressly/goose/v3/cmd/goose postgres postgres://postgres:postgres@postgresql-fencelive:5434/fencelive?sslmode=disable up
 
 //go:generate go run github.com/99designs/gqlgen generate
-//go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable -path=./internal/ports/database/gen
+//go:generate go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable -path=../internal/ports/database/gen
 
 import (
 	"FenceLive/graph/generated"
