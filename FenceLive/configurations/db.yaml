@@ -1,3 +1,0 @@
-DriverName: postgres
-ConnectionURI: postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable
-RunMigration: false

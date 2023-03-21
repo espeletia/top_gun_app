@@ -11,10 +11,10 @@ jobs:
       postgres:
         image: postgres:13.7-alpine
         ports:
-          - "5432:5432"
+          - "5434:5432"
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: FenceLive
+          POSTGRES_DB: fencelive
           POSTGRES_USER: postgres
     
 
@@ -28,17 +28,15 @@ jobs:
         
       - name: apply migrations
         run: |
-          cd FenceLive
+          cd fencelive
+          go mod tidy
           cd migrations
-          go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable' up
+          go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable' up
 
-      - name: jet generate
+      - name: jet generate and run tests
         run: |
-          cd FenceLive
-          go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5432/FenceLive?sslmode=disable -path=./internal/ports/database/gen
-
-      - name: run tests
-        run: |
-          cd FenceLive
+          cd fencelive
+          go mod tidy
+          go generate ./cmd/main.go
           go test -v ./...
            

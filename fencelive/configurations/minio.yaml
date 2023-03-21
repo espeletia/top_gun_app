@@ -1,0 +1,8 @@
+Endpoint: "minio:9000"
+Credentials: configurations/creds
+AccessKeyID: "minio123"
+SecretAccessKey: "minio123"
+UseSSL: false
+UrlExpiration: "2m" 
+Bucket: fencelive
+Location: "us-east-1"

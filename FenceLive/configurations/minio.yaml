@@ -1,7 +1,0 @@
-Endpoint: "localhost:9000"
-AccessKeyID: "minio1234"
-SecretAccessKey: "minio1234"
-UseSSL: false
-UrlExpiration: "2m" 
-Bucket: "fencelive"
-Location: "us-east-1"

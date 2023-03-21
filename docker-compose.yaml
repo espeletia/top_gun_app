@@ -6,7 +6,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: FenceLive
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
     volumes:
       - ./ci/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -20,7 +20,7 @@ services:
     environment:
       MINIO_ACCESS_KEY: minio1234
       MINIO_SECRET_KEY: minio1234
-      MINIO_DEFAULT_BUCKETS: fencelive:public
+      MINIO_DEFAULT_BUCKETS: go:public
       MINIO_DOMAIN: minio
     networks:
       - FenceLive

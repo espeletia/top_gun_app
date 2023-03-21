@@ -8,7 +8,6 @@ gen/
 build/
 tilt_modules/
 .helm/
-dev_scripts/
 swagger.yaml
 server.crt
 server.key

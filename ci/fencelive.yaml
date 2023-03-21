@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: fencelive
+  lables:
+    app: fencelive
+spec:
+  initContainers:
+    - name: fencelive-migrations
+      image: fencelive-migrations
+      command: [ "/app/run_migrations" ]
+      env:
+        - name: SERVICE_NAME
+          value: fencelive-migrations
+        - name: DATABASE_URL
+          value: "postgres://postgres:postgres@postgresql-fencelive:5432/fencelive?sslmode=disable"
+  containers:
+    - name: fencelive
+      image: fencelive
+      ports:
+        - containerPort: 8080
+      env:
+        - name: DATABASE_URL
+          value: "postgres://postgres:postgres@postgresql-fencelive:5432/fencelive?sslmode=disable"
+        - name: S3_URL
+          value: minio:9000
+        - name: S3_CREDENTIALS
+          value: /app/configurations/creds
