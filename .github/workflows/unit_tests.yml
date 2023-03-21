@@ -37,6 +37,6 @@ jobs:
         run: |
           cd fencelive
           go mod tidy
-          go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable -path=./internal/ports/database/gen
+          go generate ./cmd/main.go
           go test -v ./...
            
