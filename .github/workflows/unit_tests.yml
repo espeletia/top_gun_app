@@ -33,15 +33,10 @@ jobs:
           cd migrations
           go run github.com/pressly/goose/v3/cmd/goose postgres 'postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable' up
 
-      - name: jet generate
+      - name: jet generate and run tests
         run: |
           cd fencelive
           go mod tidy
           go run github.com/go-jet/jet/v2/cmd/jet -dsn=postgres://postgres:postgres@localhost:5434/fencelive?sslmode=disable -path=./internal/ports/database/gen
-
-      - name: run tests
-        run: |
-          cd fencelive
-          go mod tidy
           go test -v ./...
            
