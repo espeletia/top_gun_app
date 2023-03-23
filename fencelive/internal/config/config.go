@@ -10,6 +10,7 @@ type Config struct {
 	MigrationsConfig MigrationsConfig
 	DBConfig         DBConfig
 	MinioConfig      MinioConfig
+	HashConfig       HashConfig
 }
 
 func LoadConfig() *Config {
@@ -19,6 +20,7 @@ func LoadConfig() *Config {
 		MigrationsConfig: loadMigrationsConfig(),
 		DBConfig:         loadDbConfig(),
 		MinioConfig:      loadMinioConfig(),
+		HashConfig:       loadHashConfig(),
 	}
 
 	return config

@@ -14,7 +14,7 @@ func NewInputMapper() *GqlInputMapper {
 type GqlInputMapper struct {
 }
 
-func (gim GqlInputMapper) MapUser(input model.CreateUserInput) domain.UserData {
+func (gim GqlInputMapper) MapCreateUserInput(input model.CreateUserInput) (domain.UserData, string) {
 	dateString := input.BornIn
 	date, _ := time.Parse("2006-01-02", dateString)
 	userData := domain.UserData{
@@ -22,11 +22,11 @@ func (gim GqlInputMapper) MapUser(input model.CreateUserInput) domain.UserData {
 		Username:    input.UserName,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
-		Hash:        input.HashedPassword,
+		Hash: "",
 		Nationality: input.Nationality,
 		BornIn:      date,
 	}
-	return userData
+	return userData, input.Password
 }
 
 func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*domain.TournamentData, []*domain.EventData, error) {

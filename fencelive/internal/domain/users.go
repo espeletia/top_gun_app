@@ -1,12 +1,8 @@
 package domain
 
-import "time"
-
-type Error string
-
-func (e Error) Error() string { return string(e) }
-
-const UserNotFound = Error("User does not exist")
+import (
+	"time"
+)
 
 type User struct {
 	ID int64
@@ -21,4 +17,9 @@ type UserData struct {
 	LastName    string
 	Hash        string
 	Nationality string
+}
+
+type LoginCreds struct {
+	Email    string
+	Password string
 }

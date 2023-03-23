@@ -1,4 +1,4 @@
-package usecases
+package tournament
 
 import (
 	"FenceLive/internal/domain"

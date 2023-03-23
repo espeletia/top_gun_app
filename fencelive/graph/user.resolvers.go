@@ -7,6 +7,7 @@ package graph
 import (
 	"FenceLive/graph/generated"
 	"FenceLive/graph/model"
+	"FenceLive/internal/domain"
 	"context"
 	"fmt"
 	"strconv"
@@ -14,8 +15,8 @@ import (
 
 // CreateUser is the resolver for the CreateUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	userData := r.InputMapper.MapUser(input)
-	user, err := r.Users.CreateUser(ctx, userData)
+	userData, password := r.InputMapper.MapCreateUserInput(input)
+	user, err := r.Users.CreateUser(ctx, userData, password)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +47,15 @@ func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.
 		return nil, err
 	}
 	return r.Mapper.MapUser(user)
+}
+
+// Login is the resolver for the login field.
+func (r *queryResolver) Login(ctx context.Context, email string, password string) (*model.Token, error) {
+	token, err := r.Users.Login(ctx, domain.LoginCreds{Email: email, Password: password})
+	if err != nil {
+		return nil, err
+	}
+	return &model.Token{Token: token}, nil
 }
 
 // ParticipatingTournaments is the resolver for the ParticipatingTournaments field.

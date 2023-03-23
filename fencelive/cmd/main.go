@@ -43,7 +43,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	resolver, err := setup.NewResolver(dbConn)
+	resolver, err := setup.NewResolver(dbConn, *configuration)
 	if err != nil {
 		return err
 	}

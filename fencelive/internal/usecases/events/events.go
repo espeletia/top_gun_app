@@ -1,4 +1,4 @@
-package usecases
+package events
 
 import (
 	"FenceLive/internal/domain"

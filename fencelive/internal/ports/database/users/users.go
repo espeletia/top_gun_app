@@ -36,33 +36,21 @@ func (udbs UserDatabaseStore) CreateUser(ctx context.Context, user domain.UserDa
 		MODEL(modelUser).
 		RETURNING(table.Users.AllColumns)
 
-	var dest struct {
-		model.Users
-	}
+	var dest model.Users
+	
 
 	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
 		return nil, err
 	}
 
-	return &domain.User{
-		ID: int64(dest.ID),
-		UserData: domain.UserData{
-			Email:       dest.Email,
-			FirstName:   dest.FirstName,
-			LastName:    dest.LastName,
-			Username:    dest.Username,
-			Hash:        dest.Hash,
-			BornIn:      dest.BornIn,
-			Nationality: dest.Nationality}}, nil
+	return mapUserFromDB(dest)
 }
 
 func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
 	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users)
 
-	var dest []struct {
-		model.Users
-	}
+	var dest []model.Users
 
 	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
@@ -72,19 +60,8 @@ func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, 
 	var users []*domain.User
 
 	for _, user := range dest {
-		tempUser := domain.User{
-			ID: int64(user.ID),
-			UserData: domain.UserData{
-				BornIn:      user.BornIn,
-				Email:       user.Email,
-				Username:    user.Username,
-				FirstName:   user.FirstName,
-				LastName:    user.LastName,
-				Hash:        user.Hash,
-				Nationality: user.Nationality,
-			},
-		}
-		users = append(users, &tempUser)
+		tempUser, _ := mapUserFromDB(user)
+		users = append(users, tempUser)
 	}
 	return users, nil
 }
@@ -92,9 +69,7 @@ func (udbs UserDatabaseStore) GetAllUsers(ctx context.Context) ([]*domain.User, 
 func (udbs UserDatabaseStore) GetUserById(ctx context.Context, id int64) (*domain.User, error) {
 	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.ID.EQ(postgres.Int(id)))
 
-	var dest []struct {
-		model.Users
-	}
+	var dest []model.Users
 
 	err := stmt.Query(udbs.DB, &dest)
 	if err != nil {
@@ -104,14 +79,34 @@ func (udbs UserDatabaseStore) GetUserById(ctx context.Context, id int64) (*domai
 		return nil, domain.UserNotFound
 	}
 
+	return mapUserFromDB(dest[0])
+}
+
+func (udbs UserDatabaseStore) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	stmt := table.Users.SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.Email.EQ(postgres.String(email)))
+
+	var dest []model.Users
+
+	err := stmt.Query(udbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	if len(dest) < 1 {
+		return nil, domain.UserNotFound
+	}
+
+	return mapUserFromDB(dest[0])
+}
+
+func mapUserFromDB(usr model.Users) (*domain.User, error) {
 	return &domain.User{
-		ID: int64(dest[0].ID),
+		ID: int64(usr.ID),
 		UserData: domain.UserData{
-			Email:       dest[0].Email,
-			FirstName:   dest[0].FirstName,
-			LastName:    dest[0].LastName,
-			Username:    dest[0].Username,
-			Hash:        dest[0].Hash,
-			BornIn:      dest[0].BornIn,
-			Nationality: dest[0].Nationality}}, nil
+			Email:       usr.Email,
+			FirstName:   usr.FirstName,
+			LastName:    usr.LastName,
+			Username:    usr.Username,
+			Hash:        usr.Hash,
+			BornIn:      usr.BornIn,
+			Nationality: usr.Nationality}}, nil
 }
