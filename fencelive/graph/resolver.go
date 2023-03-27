@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"FenceLive/internal/usecases/auth"
 	"FenceLive/internal/usecases/events"
 	tournament "FenceLive/internal/usecases/tournaments"
 	"FenceLive/internal/usecases/users"
@@ -14,6 +15,7 @@ type Resolver struct {
 	Users       users.UserUsecase
 	Tournaments tournament.TournamentUsecase
 	Events      events.EventUsecase
+	Auth        auth.AuthUsecase
 
 	Mapper      *GqlMapper
 	InputMapper *GqlInputMapper

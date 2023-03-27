@@ -4,6 +4,11 @@ import (
 	"time"
 )
 
+var (
+	UserRoleDefault = "USER"
+	UserRoleAdmin   = "ADMIN"
+)
+
 type User struct {
 	ID int64
 	UserData

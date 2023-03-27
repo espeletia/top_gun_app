@@ -51,7 +51,7 @@ func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.
 
 // Login is the resolver for the login field.
 func (r *queryResolver) Login(ctx context.Context, email string, password string) (*model.Token, error) {
-	token, err := r.Users.Login(ctx, domain.LoginCreds{Email: email, Password: password})
+	token, err := r.Auth.Login(ctx, domain.LoginCreds{Email: email, Password: password})
 	if err != nil {
 		return nil, err
 	}

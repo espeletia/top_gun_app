@@ -30,6 +30,7 @@ func (udbs UserDatabaseStore) CreateUser(ctx context.Context, user domain.UserDa
 		Username:    user.Username,
 		BornIn:      user.BornIn,
 		Nationality: user.Nationality,
+		Role: &domain.UserRoleDefault,
 	}
 
 	stmt := table.Users.INSERT(table.Users.Email, table.Users.Username, table.Users.FirstName, table.Users.LastName, table.Users.Hash, table.Users.Nationality, table.Users.BornIn).

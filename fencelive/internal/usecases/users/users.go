@@ -3,40 +3,34 @@ package users
 import (
 	"FenceLive/internal/domain"
 	"FenceLive/internal/ports/database"
-	"FenceLive/internal/usecases"
-	"FenceLive/internal/usecases/hash"
 	"context"
+	"crypto/sha512"
+	"encoding/hex"
+
+	"go.uber.org/zap"
 )
 
-func NewUserUsecase(usi database.UserStoreInterface, hash hash.HashUsecase) UserUsecase {
+func NewUserUsecase(usi database.UserStoreInterface, salt string) UserUsecase {
 	return UserUsecase{
 		store: usi,
-		hash:  hash,
+		salt: salt,
 	}
 }
 
 type UserUsecase struct {
 	store database.UserStoreInterface
-	hash  usecases.HashUsecaseInterface
+	salt string
 }
 
 func (uu UserUsecase) CreateUser(ctx context.Context, user domain.UserData, password string) (*domain.User, error) {
-	hashedPassword := uu.hash.HashPassword(password)
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
+	sugar.Infof("Creating user with email: %", user.Email)
+	hashedPassword := uu.HashPassword(password)
 	user.Hash = hashedPassword
 	stored, err := uu.store.CreateUser(ctx, user)
 	return stored, err
-}
-
-func (uu UserUsecase) Login(ctx context.Context, creds domain.LoginCreds) (string, error) {
-	usr, err := uu.GetUserByEmail(ctx, creds.Email)
-	if err != nil {
-		return "failure", err
-	}
-	hashedPassword := uu.hash.HashPassword(creds.Password)
-	if hashedPassword != usr.Hash{
-		return "You suck", domain.InvalidCredentials
-	}
-	return "Success", nil
 }
 
 func (uu UserUsecase) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
@@ -51,3 +45,15 @@ func (uu UserUsecase) GetUserById(ctx context.Context, Id int64) (*domain.User, 
 func (uu UserUsecase) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	return uu.store.GetUserByEmail(ctx, email)
 }
+
+func (uu UserUsecase) HashPassword(password string) string {
+	passordBytes := []byte(password)
+	hash := sha512.New()
+	saltBytes := []byte(uu.salt)
+	passordBytes = append(passordBytes, saltBytes...)
+	hash.Write(passordBytes)
+	hashedPasswordBytes := hash.Sum(nil)
+	hashedPasswordHex := hex.EncodeToString(hashedPasswordBytes)
+	return hashedPasswordHex
+}
+
