@@ -43,6 +43,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
 	resolver, err := setup.NewResolver(dbConn, *configuration)
 	if err != nil {
 		return err
@@ -50,7 +51,7 @@ func run() error {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
-
+	
 	router := mux.NewRouter()
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
@@ -72,7 +73,7 @@ func serve(mux *mux.Router, config *config.Config) error {
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
-
+	
 	handler := corsMiddleware.Handler(mux)
 	api := http.Server{
 		Addr:         "0.0.0.0:" + config.ServerConfig.Port,

@@ -11,6 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	expirationClaim = "expiration"
+	idClaim         = "id"
+	roleClaim       = "role"
+	usernameClaim   = "username"
+)
+
 type AuthUsecase struct {
 	JWTSecret     string
 	JWTExpiration time.Duration
@@ -56,11 +63,11 @@ func (au AuthUsecase) CreateJWT(ctx context.Context, usr domain.User) (string, e
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["id"] = usr.ID
-	claims["username"] = usr.Username
+	claims[idClaim] = usr.ID
+	claims[usernameClaim] = usr.Username
 	//TODO: add this
-	// claims["role"] = usr.Role 
-	claims["exp"] = time.Now().UTC().Add(au.JWTExpiration).Unix()
+	// claims["role"] = usr.Role
+	claims[expirationClaim] = time.Now().UTC().Add(au.JWTExpiration).Unix()
 
 	resultToken, err := token.SignedString([]byte(au.JWTSecret))
 	if err != nil {
@@ -69,4 +76,32 @@ func (au AuthUsecase) CreateJWT(ctx context.Context, usr domain.User) (string, e
 	}
 	sugar.Infof("Successfully created JWT token")
 	return resultToken, nil
+}
+
+func (au AuthUsecase) Authenticate(ctx context.Context, token string) (*domain.User, error) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, domain.Unauthorized
+		}
+		return []byte(au.JWTSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		sugar.Errorf("Error parsing claims")
+		return nil, domain.Unauthorized
+	}
+
+	userId := claims[idClaim].(int)
+	user, err := au.Users.GetUserById(ctx, int64(userId))
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

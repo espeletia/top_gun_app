@@ -1,39 +1,57 @@
 package middleware
 
 import (
-	"fmt"
+	"FenceLive/internal/domain"
+	"FenceLive/internal/usecases/auth"
+	"context"
 	"net/http"
-	"os"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
-func VerifyJWT() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Header["Authorization"])
-		if len(r.Header["Authorization"]) < 1 {
-			fmt.Println("No token provided")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		token, err := jwt.Parse(r.Header["Authorization"][0], func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-			}
+const (
+	authHeader      = "Authorization"
+	userCtxKey      = "auth"
+	userTokenCtxKey = "token"
+)
 
-			return []byte(os.Getenv("")), nil
-		})
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		claims := token.Claims.(jwt.MapClaims)
-		roles := claims["roles"]
-
-		fmt.Printf("ROLES: %s\n", roles)
-
-	})
+func WithUserToken(ctx context.Context, user *string) context.Context {
+	return context.WithValue(ctx, userTokenCtxKey, user)
 }
-// shit ahh code
+
+func GetUserToken(ctx context.Context) (*string, bool) {
+	user, ok := ctx.Value(userTokenCtxKey).(*string)
+	return user, ok
+}
+
+func WithUser(ctx context.Context, user *domain.User) context.Context {
+	return context.WithValue(ctx, userCtxKey, user)
+}
+
+func GetUser(ctx context.Context) (*domain.User, bool) {
+	user, ok := ctx.Value(userCtxKey).(*domain.User) 
+	return user, ok
+}
+func Authentication(auth auth.AuthUsecase) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			if token := parseAuthHeader(r); token != "" {
+				user, err := auth.Authenticate(r.Context(), token)
+				if err == nil {
+					zap.S().Infof("User stored to ctx")
+					ctx = WithUser(ctx, user)
+				} else {
+					zap.L().Error("Failed to authenticate user", zap.Error(err))
+				}
+			}
+			next.ServeHTTP(rw, r.WithContext(ctx))
+		})
+	}
+}
+
+func parseAuthHeader(r *http.Request) string {
+	jwtToken := r.Header.Get(authHeader)
+	return jwtToken
+}
