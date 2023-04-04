@@ -34,7 +34,6 @@ input CreateTournamentInput{
   Location: LocationInput
   City: String!
   Country: String!
-  OwnerId: ID!
   Events: [CreateEventInput!]!
   Description: String
 }

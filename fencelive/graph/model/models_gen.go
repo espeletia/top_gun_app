@@ -53,7 +53,6 @@ type CreateTournamentInput struct {
 	Location    *LocationInput      `json:"Location"`
 	City        string              `json:"City"`
 	Country     string              `json:"Country"`
-	OwnerID     string              `json:"OwnerId"`
 	Events      []*CreateEventInput `json:"Events"`
 	Description *string             `json:"Description"`
 }

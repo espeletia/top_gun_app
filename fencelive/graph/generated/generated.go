@@ -1282,7 +1282,6 @@ input CreateTournamentInput{
   Location: LocationInput
   City: String!
   Country: String!
-  OwnerId: ID!
   Events: [CreateEventInput!]!
   Description: String
 }
@@ -8865,7 +8864,7 @@ func (ec *executionContext) unmarshalInputCreateTournamentInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"start", "end", "name", "Location", "City", "Country", "OwnerId", "Events", "Description"}
+	fieldsInOrder := [...]string{"start", "end", "name", "Location", "City", "Country", "Events", "Description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8917,14 +8916,6 @@ func (ec *executionContext) unmarshalInputCreateTournamentInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Country"))
 			it.Country, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "OwnerId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("OwnerId"))
-			it.OwnerID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -8,6 +8,7 @@ package main
 import (
 	"FenceLive/graph/generated"
 	"FenceLive/internal/config"
+	"FenceLive/internal/middleware"
 	"FenceLive/internal/setup"
 	"context"
 	"errors"
@@ -53,6 +54,7 @@ func run() error {
 	}))
 	
 	router := mux.NewRouter()
+	router.Use(middleware.Authentication(resolver.Auth))
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
 

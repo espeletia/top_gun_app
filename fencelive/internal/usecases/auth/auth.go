@@ -36,6 +36,7 @@ func (au AuthUsecase) Login(ctx context.Context, creds domain.LoginCreds) (strin
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
+
 	usr, err := au.Users.GetUserByEmail(ctx, creds.Email)
 	sugar.Infof("Attempting to log in with email: %s, and password: %s", creds.Email, creds.Password)
 	if err != nil {
@@ -59,9 +60,9 @@ func (au AuthUsecase) CreateJWT(ctx context.Context, usr domain.User) (string, e
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
+
 	sugar.Infof("Creating JWT token")
 	token := jwt.New(jwt.SigningMethodHS256)
-
 	claims := token.Claims.(jwt.MapClaims)
 	claims[idClaim] = usr.ID
 	claims[usernameClaim] = usr.Username
@@ -82,6 +83,8 @@ func (au AuthUsecase) Authenticate(ctx context.Context, token string) (*domain.U
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
+
+	sugar.Infof("Authenticating JWT token")
 	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
@@ -92,13 +95,14 @@ func (au AuthUsecase) Authenticate(ctx context.Context, token string) (*domain.U
 	if err != nil {
 		return nil, err
 	}
+	sugar.Infof("Successfully parsed JWT token")
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		sugar.Errorf("Error parsing claims")
 		return nil, domain.Unauthorized
 	}
 
-	userId := claims[idClaim].(int)
+	userId := claims[idClaim].(float64)
 	user, err := au.Users.GetUserById(ctx, int64(userId))
 	if err != nil {
 		return nil, err

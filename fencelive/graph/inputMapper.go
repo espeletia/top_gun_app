@@ -22,7 +22,7 @@ func (gim GqlInputMapper) MapCreateUserInput(input model.CreateUserInput) (domai
 		Username:    input.UserName,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
-		Hash: "",
+		Hash:        "",
 		Nationality: input.Nationality,
 		BornIn:      date,
 	}
@@ -30,10 +30,6 @@ func (gim GqlInputMapper) MapCreateUserInput(input model.CreateUserInput) (domai
 }
 
 func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*domain.TournamentData, []*domain.EventData, error) {
-	ownId, err := strconv.Atoi(input.OwnerID)
-	if err != nil {
-		return nil, nil, err
-	}
 	tournmtData := domain.TournamentData{
 		Start:       time.Unix(input.Start, 0),
 		End:         time.Unix(input.End, 0),
@@ -41,7 +37,6 @@ func (gim GqlInputMapper) MapTournament(input model.CreateTournamentInput) (*dom
 		Location:    nil,
 		City:        input.City,
 		Country:     input.Country,
-		OwnerId:     int64(ownId),
 		Description: input.Description,
 	}
 	if input.Location != nil {

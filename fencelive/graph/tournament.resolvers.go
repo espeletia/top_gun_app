@@ -7,16 +7,23 @@ package graph
 import (
 	"FenceLive/graph/generated"
 	"FenceLive/graph/model"
+	"FenceLive/internal/domain"
+	"FenceLive/internal/middleware"
 	"context"
 	"strconv"
 )
 
 // CreateTournament is the resolver for the CreateTournament field.
 func (r *mutationResolver) CreateTournament(ctx context.Context, input model.CreateTournamentInput) (*model.Tournament, error) {
+	user, ok := middleware.GetUser(ctx)
+	if !ok {
+		return nil, domain.Unauthorized
+	}
 	tournamentInput, eventInput, err := r.InputMapper.MapTournament(input)
 	if err != nil {
 		return nil, err
 	}
+	tournamentInput.OwnerId = user.ID
 	tournament, err := r.Tournaments.CreateTournament(ctx, *tournamentInput)
 	if err != nil {
 		return nil, err
