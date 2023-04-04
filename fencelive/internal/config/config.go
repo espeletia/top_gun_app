@@ -8,8 +8,10 @@ type Config struct {
 	ServerConfig     ServerConfig
 	ServiceConfig    ServiceConfig
 	MigrationsConfig MigrationsConfig
+	JWTConfig        JWTConfig
 	DBConfig         DBConfig
 	MinioConfig      MinioConfig
+	HashConfig       HashConfig
 }
 
 func LoadConfig() *Config {
@@ -19,6 +21,8 @@ func LoadConfig() *Config {
 		MigrationsConfig: loadMigrationsConfig(),
 		DBConfig:         loadDbConfig(),
 		MinioConfig:      loadMinioConfig(),
+		HashConfig:       loadHashConfig(),
+		JWTConfig:        loadJWTConfig(),
 	}
 
 	return config

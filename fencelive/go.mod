@@ -7,6 +7,7 @@ require (
 	github.com/XSAM/otelsql v0.17.0
 	github.com/docker/go-connections v0.4.0
 	github.com/go-jet/jet/v2 v2.9.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.7
 	github.com/minio/minio-go/v7 v7.0.49

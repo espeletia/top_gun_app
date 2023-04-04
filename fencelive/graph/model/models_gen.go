@@ -53,19 +53,18 @@ type CreateTournamentInput struct {
 	Location    *LocationInput      `json:"Location"`
 	City        string              `json:"City"`
 	Country     string              `json:"Country"`
-	OwnerID     string              `json:"OwnerId"`
 	Events      []*CreateEventInput `json:"Events"`
 	Description *string             `json:"Description"`
 }
 
 type CreateUserInput struct {
-	Email          string `json:"Email"`
-	BornIn         string `json:"BornIn"`
-	HashedPassword string `json:"HashedPassword"`
-	UserName       string `json:"UserName"`
-	FirstName      string `json:"FirstName"`
-	LastName       string `json:"LastName"`
-	Nationality    string `json:"Nationality"`
+	Email       string `json:"Email"`
+	BornIn      string `json:"BornIn"`
+	Password    string `json:"Password"`
+	UserName    string `json:"UserName"`
+	FirstName   string `json:"FirstName"`
+	LastName    string `json:"LastName"`
+	Nationality string `json:"Nationality"`
 }
 
 type DetailsInput struct {
@@ -144,6 +143,10 @@ type Tableau struct {
 	MatchIds []string         `json:"MatchIds"`
 	Name     string           `json:"Name"`
 	Status   TournamentStatus `json:"Status"`
+}
+
+type Token struct {
+	Token string `json:"Token"`
 }
 
 type Tournament struct {

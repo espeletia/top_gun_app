@@ -2,27 +2,33 @@ package setup
 
 import (
 	"FenceLive/graph"
+	"FenceLive/internal/config"
 	"FenceLive/internal/ports/database/events"
 	"FenceLive/internal/ports/database/tournaments"
 	"FenceLive/internal/ports/database/users"
-	"FenceLive/internal/usecases"
+	"FenceLive/internal/usecases/auth"
+	eventUsecase "FenceLive/internal/usecases/events"
+	tournamentUsecase "FenceLive/internal/usecases/tournaments"
+	userUsecase "FenceLive/internal/usecases/users"
 	"database/sql"
 )
 
-func NewResolver(dbConn *sql.DB) (*graph.Resolver, error) {
+func NewResolver(dbConn *sql.DB, config config.Config) (*graph.Resolver, error) {
 	tournamentStore := tournaments.NewTournamentDatabaseStore(dbConn)
-	tournamentUsecase := usecases.NewTournamentUsecase(tournamentStore)
+	tournamentUsecase := tournamentUsecase.NewTournamentUsecase(tournamentStore)
 	eventStore := events.NewEventDatabaseStore(dbConn)
-	eventUsecase := usecases.NewEventUsecase(eventStore)
+	eventUsecase := eventUsecase.NewEventUsecase(eventStore)
 	userStore := users.NewUserDatabaseStore(dbConn)
-	userUsecase := usecases.NewUserUsecase(userStore)
-	
+	userUsecase := userUsecase.NewUserUsecase(userStore, config.HashConfig.Salt)
+	authUsecase := auth.NewAuthUsecase(userUsecase, config.JWTConfig.Signature, config.JWTConfig.Expiration)
+
 	return &graph.Resolver{
 		Tournaments: tournamentUsecase,
-		Events: eventUsecase,
-		Users: userUsecase,
+		Events:      eventUsecase,
+		Users:       userUsecase,
+		Auth:        authUsecase,
 
-		Mapper: graph.NweGqlMapper(),
+		Mapper:      graph.NweGqlMapper(),
 		InputMapper: graph.NewInputMapper(),
 	}, nil
 

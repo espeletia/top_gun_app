@@ -19,12 +19,12 @@ type TournamentStoreInterface interface {
 	UpdateTournamentData(ctx context.Context, tournamentId int64, tournamentData domain.TournamentData) (*domain.Tournament, error)
 }
 
-//TODO finish this
+// TODO finish this
 type UserStoreInterface interface {
 	CreateUser(ctx context.Context, user domain.UserData) (*domain.User, error)
 	GetAllUsers(ctx context.Context) ([]*domain.User, error)
 	GetUserById(ctx context.Context, id int64) (*domain.User, error)
-	//GetUserByEmail(email string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	//GetUserByUsername(username string) (*User, error)
 	//GetUsers() ([]*User, error)
 	//UpdateUser(user *User) error

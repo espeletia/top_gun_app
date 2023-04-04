@@ -28,19 +28,25 @@ type User{
   Nationality: String!
 }
 
+type Token{
+  Token: String!
+}
+
 input CreateUserInput{
   Email: String!
   BornIn: String!
-  HashedPassword: String!
+  Password: String!
   UserName: String!
   FirstName: String!
   LastName: String!
   Nationality: String!
 }
 
+
 extend type Query {
   getAllUsers: [User!]!
   getUserByID(UserID: ID!): User! 
+  login(Email: String!, Password: String!): Token!
 }
 
 extend type Mutation {

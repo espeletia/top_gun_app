@@ -11,7 +11,7 @@ type DBConfig struct {
 func loadDbConfig() DBConfig {
 	dbConfig := &DBConfig{}
 	v := configViper("db")
-	v.BindEnv("ConnectionURI", "DATABASE_URL", "ODIN_DATABASE_URL")
+	v.BindEnv("ConnectionURI", "DATABASE_URL")
 	err := v.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("fatal error config file: %w ", err))

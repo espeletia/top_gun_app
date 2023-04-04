@@ -8,7 +8,7 @@ CREATE TABLE users (
   email varchar(50) UNIQUE NOT NULL,
   nationality varchar(32) NOT NULL,
   born_in date NOT NULL,
-  hash varchar(256) NOT NULL,
+  hash char(128) NOT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   role varchar(16),
