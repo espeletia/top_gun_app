@@ -72,7 +72,7 @@ input TournamentFilterInput{
 extend type Query {
   getAllTournaments: [Tournament!]!
   getTournamentById(Id: ID!): Tournament!
-  listTournamentsWithFilter(limit: Int!, nextToken: String): TournamentConnection!
+  listAllTournaments(limit: Int!, nextToken: String): TournamentConnection!
 }
 
 extend type Mutation {

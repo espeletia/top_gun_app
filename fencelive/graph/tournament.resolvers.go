@@ -76,8 +76,8 @@ func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*mode
 	return r.Mapper.MapTournament(tournament)
 }
 
-// ListTournamentsWithFilter is the resolver for the listTournamentsWithFilter field.
-func (r *queryResolver) ListTournamentsWithFilter(ctx context.Context, limit int64, nextToken *string) (*model.TournamentConnection, error) {
+// ListAllTournaments is the resolver for the listAllTournaments field.
+func (r *queryResolver) ListAllTournaments(ctx context.Context, limit int64, nextToken *string) (*model.TournamentConnection, error) {
 	token := ""
 	if nextToken != nil {
 		token = *nextToken

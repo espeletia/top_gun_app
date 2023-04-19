@@ -135,13 +135,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAllTournaments         func(childComplexity int) int
-		GetAllUsers               func(childComplexity int) int
-		GetEvent                  func(childComplexity int, eventID string) int
-		GetTournamentByID         func(childComplexity int, id string) int
-		GetUserByID               func(childComplexity int, userID string) int
-		ListTournamentsWithFilter func(childComplexity int, limit int64, nextToken *string) int
-		Login                     func(childComplexity int, email string, password string) int
+		GetAllTournaments  func(childComplexity int) int
+		GetAllUsers        func(childComplexity int) int
+		GetEvent           func(childComplexity int, eventID string) int
+		GetTournamentByID  func(childComplexity int, id string) int
+		GetUserByID        func(childComplexity int, userID string) int
+		ListAllTournaments func(childComplexity int, limit int64, nextToken *string) int
+		Login              func(childComplexity int, email string, password string) int
 	}
 
 	Tableau struct {
@@ -238,7 +238,7 @@ type QueryResolver interface {
 	GetEvent(ctx context.Context, eventID string) (*model.Event, error)
 	GetAllTournaments(ctx context.Context) ([]*model.Tournament, error)
 	GetTournamentByID(ctx context.Context, id string) (*model.Tournament, error)
-	ListTournamentsWithFilter(ctx context.Context, limit int64, nextToken *string) (*model.TournamentConnection, error)
+	ListAllTournaments(ctx context.Context, limit int64, nextToken *string) (*model.TournamentConnection, error)
 	GetAllUsers(ctx context.Context) ([]*model.User, error)
 	GetUserByID(ctx context.Context, userID string) (*model.User, error)
 	Login(ctx context.Context, email string, password string) (*model.Token, error)
@@ -751,17 +751,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUserByID(childComplexity, args["UserID"].(string)), true
 
-	case "Query.listTournamentsWithFilter":
-		if e.complexity.Query.ListTournamentsWithFilter == nil {
+	case "Query.listAllTournaments":
+		if e.complexity.Query.ListAllTournaments == nil {
 			break
 		}
 
-		args, err := ec.field_Query_listTournamentsWithFilter_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_listAllTournaments_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.ListTournamentsWithFilter(childComplexity, args["limit"].(int64), args["nextToken"].(*string)), true
+		return e.complexity.Query.ListAllTournaments(childComplexity, args["limit"].(int64), args["nextToken"].(*string)), true
 
 	case "Query.login":
 		if e.complexity.Query.Login == nil {
@@ -1355,7 +1355,7 @@ input TournamentFilterInput{
 extend type Query {
   getAllTournaments: [Tournament!]!
   getTournamentById(Id: ID!): Tournament!
-  listTournamentsWithFilter(limit: Int!, nextToken: String): TournamentConnection!
+  listAllTournaments(limit: Int!, nextToken: String): TournamentConnection!
 }
 
 extend type Mutation {
@@ -1561,7 +1561,7 @@ func (ec *executionContext) field_Query_getUserByID_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_listTournamentsWithFilter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_listAllTournaments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int64
@@ -4978,8 +4978,8 @@ func (ec *executionContext) fieldContext_Query_getTournamentById(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_listTournamentsWithFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_listTournamentsWithFilter(ctx, field)
+func (ec *executionContext) _Query_listAllTournaments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listAllTournaments(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4992,7 +4992,7 @@ func (ec *executionContext) _Query_listTournamentsWithFilter(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ListTournamentsWithFilter(rctx, fc.Args["limit"].(int64), fc.Args["nextToken"].(*string))
+		return ec.resolvers.Query().ListAllTournaments(rctx, fc.Args["limit"].(int64), fc.Args["nextToken"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5008,7 +5008,7 @@ func (ec *executionContext) _Query_listTournamentsWithFilter(ctx context.Context
 	return ec.marshalNTournamentConnection2ᚖFenceLiveᚋgraphᚋmodelᚐTournamentConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_listTournamentsWithFilter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_listAllTournaments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5031,7 +5031,7 @@ func (ec *executionContext) fieldContext_Query_listTournamentsWithFilter(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_listTournamentsWithFilter_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_listAllTournaments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -10341,7 +10341,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "listTournamentsWithFilter":
+		case "listAllTournaments":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -10350,7 +10350,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_listTournamentsWithFilter(ctx, field)
+				res = ec._Query_listAllTournaments(ctx, field)
 				return res
 			}
 
