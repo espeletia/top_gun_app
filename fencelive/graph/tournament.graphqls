@@ -21,6 +21,11 @@ type Tournament {
   Description: String
 }
 
+type TournamentConnection {
+  items: [Tournament!]!
+  nextToken: String
+}
+
 type Location {
   Lat: Float!
   Lon: Float!
@@ -55,9 +60,19 @@ input LocationInput{
   Address: String!
 }
 
+input TournamentFilterInput{
+  start: Int
+  end: Int
+  name: String!
+  City: String!
+  Country: String!
+  Status: TournamentStatus
+}
+
 extend type Query {
   getAllTournaments: [Tournament!]!
   getTournamentById(Id: ID!): Tournament!
+  listTournamentsWithFilter(limit: Int!, nextToken: String): TournamentConnection!
 }
 
 extend type Mutation {

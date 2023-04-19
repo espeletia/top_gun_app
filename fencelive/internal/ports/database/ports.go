@@ -13,6 +13,7 @@ type EventStoreInterface interface {
 }
 
 type TournamentStoreInterface interface {
+	ListAllTournaments(ctx context.Context, limit int64, offset int64) ([]*domain.Tournament, error)
 	CreateTournament(ctx context.Context, TournData domain.TournamentData) (*domain.Tournament, error)
 	GetTournamentById(ctx context.Context, id int64) (*domain.Tournament, error)
 	GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error)

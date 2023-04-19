@@ -124,3 +124,29 @@ func (gim GqlInputMapper) MapEventUserArray(input []*model.AthleteSeedingInput) 
 	}
 	return mappedAthletes, nil
 }
+
+func (gim GqlInputMapper) MapTournamentFilter(input model.TournamentFilterInput) domain.TournamentFilter {
+	Start := time.Unix(0, 0)
+	if input.Start != nil {
+		Start = time.Unix(*input.Start, 0)
+	}
+	End := time.Unix(0, 0)
+	if input.End != nil {
+		End = time.Unix(*input.End, 0)
+	}
+	Name := "%" + input.Name + "%"
+	City := "%" + input.City + "%"
+	Country := "%" + input.Country + "%"
+	status := domain.TournamentStatusCreated
+	if input.Status != nil {
+		status = input.Status.String()
+	}
+	return domain.TournamentFilter{
+		Start:   Start,
+		End:     End,
+		Name:    Name,
+		City:    City,
+		Country: Country,
+		Status:  status,
+	}
+}

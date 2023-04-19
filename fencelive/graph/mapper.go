@@ -123,3 +123,14 @@ func (gm GqlMapper) MapAthleteArray(userEvents []*domain.Athlete) ([]*model.Athl
 	}
 	return mappedAthletes, nil
 }
+
+func (gm GqlMapper) MapTournamentConnection(tournaments []*domain.Tournament, nextToken *string) (*model.TournamentConnection, error) {
+	mappedTournaments, err := gm.MapTournamentArray(tournaments)
+	if err != nil {
+		return nil, err
+	}
+	return &model.TournamentConnection{
+		Items:     mappedTournaments,
+		NextToken: nextToken,
+	}, nil
+}
