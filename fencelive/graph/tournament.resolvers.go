@@ -76,6 +76,20 @@ func (r *queryResolver) GetTournamentByID(ctx context.Context, id string) (*mode
 	return r.Mapper.MapTournament(tournament)
 }
 
+// ListAllTournaments is the resolver for the listAllTournaments field.
+func (r *queryResolver) ListAllTournaments(ctx context.Context, limit int64, nextToken *string) (*model.TournamentConnection, error) {
+	token := ""
+	if nextToken != nil {
+		token = *nextToken
+	}
+	tournaments, err := r.Tournaments.ListAllTournaments(ctx, limit, token)
+	if err != nil {
+		return nil, err
+	}
+	//TODO: finish pagination
+	return r.Mapper.MapTournamentConnection(tournaments, nil)
+}
+
 // Owner is the resolver for the Owner field.
 func (r *tournamentResolver) Owner(ctx context.Context, obj *model.Tournament) (*model.User, error) {
 	ownerID, err := strconv.Atoi(obj.OwnerID)

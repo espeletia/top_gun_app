@@ -54,6 +54,7 @@ func (tdbs TournamentDatabaseStore) CreateTournament(ctx context.Context, TournD
 	return mapDBTournament(dest.Tournaments), nil
 }
 
+// TODO: rethink this function
 func (tdbs TournamentDatabaseStore) UpdateTournamentData(ctx context.Context, tournamentID int64, TournData domain.TournamentData) (*domain.Tournament, error) {
 	modelTourn := model.Tournaments{
 		StartTime:   TournData.Start,
@@ -97,6 +98,24 @@ func (tdbs TournamentDatabaseStore) GetTournamentById(ctx context.Context, id in
 	}
 
 	return mapDBTournament(dest[0].Tournaments), nil
+}
+
+func (tdbs TournamentDatabaseStore) ListAllTournaments(ctx context.Context, limit int64, offset int64) ([]*domain.Tournament, error) {
+	stmt := table.Tournaments.SELECT(table.Tournaments.AllColumns).LIMIT(limit).OFFSET(offset)
+
+	var dest []model.Tournaments
+
+	err := stmt.Query(tdbs.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	var tournaments []*domain.Tournament
+	for _, tournament := range dest {
+		tournaments = append(tournaments, mapDBTournament(tournament))
+	}
+
+	return tournaments, nil
 }
 
 func (tdbs TournamentDatabaseStore) GetAllTournaments(ctx context.Context) ([]*domain.Tournament, error) {

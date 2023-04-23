@@ -164,6 +164,20 @@ type Tournament struct {
 	Description *string          `json:"Description"`
 }
 
+type TournamentConnection struct {
+	Items     []*Tournament `json:"items"`
+	NextToken *string       `json:"nextToken"`
+}
+
+type TournamentFilterInput struct {
+	Start   *int64            `json:"start"`
+	End     *int64            `json:"end"`
+	Name    string            `json:"name"`
+	City    string            `json:"City"`
+	Country string            `json:"Country"`
+	Status  *TournamentStatus `json:"Status"`
+}
+
 type UpdateTournamentInput struct {
 	Start       int64          `json:"start"`
 	End         int64          `json:"end"`
