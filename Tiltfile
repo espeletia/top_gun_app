@@ -50,7 +50,7 @@ docker_build_with_restart('fencelive',
             './fencelive/configurations',
             './fencelive/certs',
             './fencelive/migrations',
-            './fencelive/cmd/migrationsgo'
+            './fencelive/cmd/migrations'
         ],
         live_update=[
             sync('./fencelive/build', '/app'),

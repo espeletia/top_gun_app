@@ -46,6 +46,8 @@ input CreateUserInput{
 extend type Query {
   getAllUsers: [User!]!
   getUserByID(UserID: ID!): User! 
+  getUserByUsername(Username: String!): User! 
+
   login(Email: String!, Password: String!): Token!
 }
 

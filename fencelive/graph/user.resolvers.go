@@ -49,6 +49,11 @@ func (r *queryResolver) GetUserByID(ctx context.Context, userID string) (*model.
 	return r.Mapper.MapUser(user)
 }
 
+// GetUserByUsername is the resolver for the getUserByUsername field.
+func (r *queryResolver) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: GetUserByUsername - getUserByUsername"))
+}
+
 // Login is the resolver for the login field.
 func (r *queryResolver) Login(ctx context.Context, email string, password string) (*model.Token, error) {
 	token, err := r.Auth.Login(ctx, domain.LoginCreds{Email: email, Password: password})
